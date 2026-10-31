@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Distance — workspace-monitor{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+{% endblock %}
+{% block content %}
+<h1>Live Driving Distance Calculator</h1>
+<p>This tool uses the free Nominatim and OSRM APIs. Results are cached locally.</p>
+
+<form method="post" action="{{ url_for('distance.distance') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <label>Start Address <input type="text" name="start" value="{{ start }}" required></label>
+  <label>End Address <input type="text" name="end" value="{{ end }}" required></label>
+  <button type="submit">Calculate Driving Distance</button>
+</form>
+
+{% if result %}
+<p><strong>Distance: {{ "%.2f"|format(result.distance_miles) }} miles, Duration: {{ "%.2f"|format(result.duration_minutes) }} minutes</strong></p>
+<p>{{ result.methodology }}</p>
+{% if result.coords %}
+<div id="map" style="height: 400px;"></div>
+<script>
+  var coords = {{ result.coords|tojson }};
+  var map = L.map('map').setView(coords[0], 10);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 19}).addTo(map);
+  L.polyline(coords.map(function (c) { return [c[0], c[1]]; })).addTo(map);
+  map.fitBounds(coords.map(function (c) { return [c[0], c[1]]; }));
+</script>
+{% endif %}
+{% endif %}
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Home — workspace-monitor{% endblock %}
+{% block content %}
+<h1>Welcome, {{ user.full_name }}!</h1>
+<p>Status: Logged in as {{ user.role.value }}</p>
+<div class="metrics">
+  <div><strong>Users visible</strong><p>{{ users }}</p></div>
+  <div><strong>Attendance records</strong><p>{{ attendance_records }}</p></div>
+  <div><strong>Mileage entries pending</strong><p>{{ pending_mileage }}</p></div>
+</div>
+<p>Use the navigation above for Attendance, Schedule, Mileage, Directory, and Distance Calculator.</p>
+{% endblock %}

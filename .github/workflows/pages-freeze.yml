@@ -1,9 +1,12 @@
 name: Pages freeze
 
-# Static screenshot gallery for GitHub Pages. This is a viewing
-# freeze only — Pages serves static files, so the gallery is not
-# the interactive app. One-time setup: Settings → Pages → Build
-# and deployment → Source: GitHub Actions. The published URL is
+# Static HTML freeze for GitHub Pages. The Flask test client
+# renders each page from the demo seed and writes real HTML
+# to freeze-site/ — no browser, no running server, no
+# screenshots. Navigation and reading work on Pages; forms
+# do not submit (see scripts/freeze.py). One-time setup:
+# Settings → Pages → Build and deployment → Source: GitHub
+# Actions. The published URL is
 # https://enonymous1.github.io/workspace-monitor/
 on:
   push:
@@ -34,28 +37,8 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -e .
-          pip install playwright
-          playwright install chromium --with-deps
-      - name: Start backend and frontend
-        env:
-          WORKSPACE_MONITOR_SECRET_KEY: ci-freeze-secret-not-a-real-secret
-          WORKSPACE_MONITOR_AUTO_SEED: "1"
-          WORKSPACE_MONITOR_API_URL: http://127.0.0.1:8000/api
-        run: |
-          python -m uvicorn src.api.main:app --port 8000 > /tmp/backend.log 2>&1 &
-          streamlit run src/frontend/app.py --server.port 8501 --server.headless true > /tmp/frontend.log 2>&1 &
-          for i in $(seq 1 60); do
-            if curl -fsS http://127.0.0.1:8000/health > /dev/null 2>&1 && curl -fsS http://127.0.0.1:8501/ > /dev/null 2>&1; then
-              echo "servers up"
-              exit 0
-            fi
-            sleep 2
-          done
-          echo "servers did not come up" >&2
-          tail -50 /tmp/backend.log /tmp/frontend.log >&2
-          exit 1
-      - name: Capture freeze
-        run: python scripts/capture_freeze.py --out freeze-site
+      - name: Build freeze
+        run: python scripts/freeze.py --out freeze-site
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

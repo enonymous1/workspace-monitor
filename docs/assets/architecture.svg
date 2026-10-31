@@ -6,15 +6,15 @@
   </defs>
   <rect x="10" y="110" width="150" height="80" rx="10" fill="#e8f0fe" stroke="#1a73e8"/>
   <text x="85" y="140" text-anchor="middle" font-size="14" font-weight="600">Browser</text>
-  <text x="85" y="160" text-anchor="middle" font-size="12">Streamlit pages</text>
-  <text x="85" y="176" text-anchor="middle" font-size="12">(home + 5 tools)</text>
+  <text x="85" y="160" text-anchor="middle" font-size="12">Flask templates</text>
+  <text x="85" y="176" text-anchor="middle" font-size="12">(home + 5 pages)</text>
   <rect x="230" y="110" width="180" height="80" rx="10" fill="#e6f4ea" stroke="#188038"/>
-  <text x="320" y="140" text-anchor="middle" font-size="14" font-weight="600">FastAPI backend</text>
-  <text x="320" y="160" text-anchor="middle" font-size="12">auth · security · routers</text>
-  <text x="320" y="176" text-anchor="middle" font-size="12">JWT + role checks</text>
+  <text x="320" y="140" text-anchor="middle" font-size="14" font-weight="600">Flask app</text>
+  <text x="320" y="160" text-anchor="middle" font-size="12">auth · blueprints · services</text>
+  <text x="320" y="176" text-anchor="middle" font-size="12">Session + role checks</text>
   <rect x="480" y="110" width="160" height="80" rx="10" fill="#fef7e0" stroke="#b06000"/>
   <text x="560" y="140" text-anchor="middle" font-size="14" font-weight="600">SQLite</text>
-  <text x="560" y="160" text-anchor="middle" font-size="12">src/api/monitor.db</text>
+  <text x="560" y="160" text-anchor="middle" font-size="12">workspace_monitor/monitor.db</text>
   <text x="560" y="176" text-anchor="middle" font-size="12">WAL · indexed · FK on</text>
   <rect x="700" y="30" width="170" height="60" rx="10" fill="#f3e8fd" stroke="#8430ce"/>
   <text x="785" y="55" text-anchor="middle" font-size="13" font-weight="600">Nominatim</text>
@@ -26,11 +26,11 @@
   <text x="785" y="225" text-anchor="middle" font-size="13" font-weight="600">seed_demo.py</text>
   <text x="785" y="243" text-anchor="middle" font-size="12">demo data, opt-in only</text>
   <line x1="160" y1="150" x2="228" y2="150" stroke="#555" stroke-width="1.5" marker-end="url(#arrow)"/>
-  <text x="194" y="138" text-anchor="middle" font-size="11">JWT Bearer</text>
+  <text x="194" y="138" text-anchor="middle" font-size="11">Session cookie</text>
   <line x1="410" y1="150" x2="478" y2="150" stroke="#555" stroke-width="1.5" marker-end="url(#arrow)"/>
   <text x="444" y="138" text-anchor="middle" font-size="11">SQL</text>
   <line x1="160" y1="90" x2="700" y2="60" stroke="#999" stroke-width="1.2" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
   <line x1="160" y1="110" x2="700" y2="140" stroke="#999" stroke-width="1.2" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
   <line x1="480" y1="190" x2="700" y2="230" stroke="#555" stroke-width="1.5" marker-end="url(#arrow)"/>
-  <text x="440" y="285" text-anchor="middle" font-size="12" fill="#555">workspace-monitor v2.2 — Streamlit frontend, FastAPI backend, local SQLite. External services are demo-only.</text>
+  <text x="440" y="285" text-anchor="middle" font-size="12" fill="#555">workspace-monitor v2.2 — Streamlit frontend, Flask app, local SQLite. External services are demo-only.</text>
 </svg>

@@ -1,5 +1,58 @@
 # Changelog
 
+## 3.0.0 — 2026-10-31
+
+### Changed — BREAKING: Flask rebuild, supersedes the FastAPI + Streamlit build
+
+- **Stack:** Flask + Jinja2, app factory, one process
+  (`workspace_monitor` top-level package, no `sys.path` hacks),
+  replacing FastAPI + Streamlit (two processes). The database
+  schema, demo seed (15 users, 75 attendance rows), role
+  rules, and feature set are carried over unchanged; only the
+  web layer changed. FastAPI endpoints (`/api/*`, `/docs`) and
+  Streamlit pages are removed.
+- **Auth:** server-side Flask sessions (signed cookie holding
+  only the email, re-checked against the database on every
+  request) + per-session CSRF tokens on all POST forms,
+  replacing JWTs. Logout clears the session; no token
+  revocation table is needed. Failed-login rate limiting
+  (5 per IP per 15 minutes) and suspended-user blocking are
+  kept.
+- **Pages freeze:** `scripts/freeze.py` replaces the v2
+  screenshot gallery. The Flask test client renders real HTML
+  for login, home, attendance, schedule, mileage, directory,
+  and distance (plus `mileage.csv`) from a throwaway demo
+  database — no browser, no running server. Navigation and
+  reading work on Pages; forms are disabled and a banner says
+  so. The workflow no longer installs Playwright/Chromium.
+- **Schedule:** server-rendered week view instead of a
+  JavaScript calendar widget, which is what makes the freeze
+  work (the table is in the HTML).
+- **Mileage bulk upload:** still one transaction, now via
+  CSV/Excel parsing in the Flask route (no pandas, no per-row
+  HTTP requests).
+- **Screenshots:** all README screenshots re-captured from
+  the real Flask app on the demo dataset, including a new
+  directory shot; distance shot is a real Nominatim/OSRM
+  route (43.11 miles, 62.66 minutes).
+- **Tests:** 21 tests via the Flask test client (throwaway
+  app + database per test), covering the same ground as v2
+  plus CSRF and the freeze build. The stale-cache bug that
+  cleared the session on every login, and the empty-token
+  CSRF bypass (empty form token matching an empty session
+  token), were both found by these tests and fixed.
+- **Dependencies:** Flask, bcrypt, openpyxl, polyline,
+  requests, email-validator only. FastAPI, uvicorn, PyJWT,
+  Streamlit, streamlit-calendar, streamlit-js-eval, and pandas
+  are gone.
+
+### Still open (unchanged from v2)
+
+- Schedule write endpoints, mileage approval workflow, audit
+  log, password reset, Alembic migrations, single settings
+  object for the database path (currently env-driven at
+  import for the database module, config-driven in the app).
+
 ## 2.2.1 — 2026-10-31
 
 ### Fixed

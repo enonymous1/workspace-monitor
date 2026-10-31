@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Sign in — workspace-monitor{% endblock %}
+{% block content %}
+<h1>Workspace Sign In</h1>
+<p>Enter your credentials to access the Virginia Hub.</p>
+<form method="post" action="{{ url_for('auth.login') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <label>User Email
+    <input type="email" name="email" value="admin@example.com" required>
+  </label>
+  <label>Password
+    <input type="password" name="password" required>
+  </label>
+  <button type="submit">Sign In</button>
+</form>
+<details>
+  <summary>Demo credentials (demo data only)</summary>
+  <p>The demo seed creates 15 fictional @example.com users, all with password <code>Demo1234!</code> (override with <code>WORKSPACE_MONITOR_DEMO_PASSWORD</code> before seeding). Never seed demo data in production.</p>
+  <p><code>admin@example.com / Demo1234!</code></p>
+</details>
+{% endblock %}

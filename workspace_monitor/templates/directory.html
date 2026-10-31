@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Directory — workspace-monitor{% endblock %}
+{% block content %}
+<h1>Workspace Directory</h1>
+
+<form method="get" action="{{ url_for('directory.directory') }}">
+  <label>Search Name, Title or Email <input type="text" name="q" value="{{ search }}"></label>
+  <button type="submit">Search</button>
+</form>
+
+<h2>Personal &amp; Workspace Contacts</h2>
+<table>
+  <thead><tr><th>Name</th><th>Title</th><th>Email</th><th>Phone</th><th>Category</th><th>Owner</th><th></th></tr></thead>
+  <tbody>
+  {% for row in rows %}
+    <tr>
+      <td>{{ row.full_name }}</td><td>{{ row.job_title }}</td><td>{{ row.email }}</td><td>{{ row.phone }}</td><td>{{ row.category }}</td><td>{{ row.owner_email }}</td>
+      <td>
+        <form method="post" action="{{ url_for('directory.delete_contact', contact_id=row.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <button type="submit">Delete</button>
+        </form>
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+<h2>Organization Directory Management</h2>
+<p>Admins may create contacts for anyone; other users may only create contacts for themselves.</p>
+<form method="post" action="{{ url_for('directory.add_contact') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <label>Owner email <input type="email" name="owner_email" value="{{ user.email }}"></label>
+  <label>Full name <input type="text" name="full_name" required></label>
+  <label>Job title <input type="text" name="job_title"></label>
+  <label>Email <input type="email" name="email" required></label>
+  <label>Phone <input type="text" name="phone"></label>
+  <label>Category <input type="text" name="category"></label>
+  <button type="submit">Save contact</button>
+</form>
+{% endblock %}

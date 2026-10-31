@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Attendance — workspace-monitor{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+{% endblock %}
+{% block content %}
+<h1>Clock-in Attendance Explorer</h1>
+
+<h2>Clock in / out</h2>
+<form method="post" action="{{ url_for('attendance.clock_in') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <label>Latitude <input type="number" step="any" name="latitude" id="latitude" required></label>
+  <label>Longitude <input type="number" step="any" name="longitude" id="longitude" required></label>
+  <label>Location name <input type="text" name="location_name" value="Mobile Capture"></label>
+  <button type="submit">Clock In</button>
+  <button type="button" id="use-location">Use my location</button>
+</form>
+<form method="post" action="{{ url_for('attendance.clock_out') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <button type="submit">Clock Out</button>
+</form>
+{% if open_shift %}<p><strong>You are currently clocked in.</strong></p>{% endif %}
+
+<h2>Attendance records</h2>
+<table>
+  <thead><tr><th>User</th><th>Clock in</th><th>Clock out</th><th>Location</th></tr></thead>
+  <tbody>
+  {% for row in rows %}
+    <tr><td>{{ row.user_email }}</td><td>{{ row.clock_in_time }}</td><td>{{ row.clock_out_time or '' }}</td><td>{{ row.location_name }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+{% if markers %}
+<h2>Clock-in map</h2>
+<div id="map" style="height: 400px;"></div>
+<script>
+  var map = L.map('map').setView([38.3, -77.8], 8);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 19}).addTo(map);
+  {% for m in markers %}
+  L.marker([{{ m.lat }}, {{ m.lon }}]).addTo(map).bindPopup("{{ m.name }} — {{ m.email }}");
+  {% endfor %}
+</script>
+{% endif %}
+<script>
+  document.getElementById('use-location').addEventListener('click', function () {
+    if (!navigator.geolocation) { alert('Geolocation is not supported by this browser.'); return; }
+    navigator.geolocation.getCurrentPosition(function (pos) {
+      document.getElementById('latitude').value = pos.coords.latitude;
+      document.getElementById('longitude').value = pos.coords.longitude;
+    });
+  });
+</script>
+{% endblock %}

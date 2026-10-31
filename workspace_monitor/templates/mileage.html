@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Mileage — workspace-monitor{% endblock %}
+{% block content %}
+<h1>Mileage Log &amp; tracking</h1>
+
+<h2>Your Recorded Mileage</h2>
+<p>Total Miles: {{ total_miles }} &nbsp; Entries: {{ total_entries }} &nbsp; Verified: {{ verified }}</p>
+{% if all_users %}
+<form method="get" action="{{ url_for('mileage.mileage') }}">
+  <label>View logs for
+    <select name="user_email">
+      <option value="">All</option>
+      {% for u in all_users %}
+      <option value="{{ u.email }}" {% if filter_email == u.email %}selected{% endif %}>{{ u.full_name }} ({{ u.email }})</option>
+      {% endfor %}
+    </select>
+  </label>
+  <button type="submit">Filter</button>
+</form>
+{% endif %}
+<table>
+  <thead><tr><th>Date</th><th>User</th><th>Start</th><th>End</th><th>Miles</th><th>Purpose</th><th>Status</th></tr></thead>
+  <tbody>
+  {% for row in rows %}
+    <tr><td>{{ row.date }}</td><td>{{ row.user_email }}</td><td>{{ row.start_location }}</td><td>{{ row.end_location }}</td><td>{{ row.miles }}</td><td>{{ row.purpose }}</td><td>{{ row.status }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+<p><a href="{{ url_for('mileage.export_mileage') }}">Export Mileage to CSV</a></p>
+
+<h2>Add mileage</h2>
+<form method="post" action="{{ url_for('mileage.add_mileage') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <label>Date <input type="date" name="date" required></label>
+  <label>Start location <input type="text" name="start_location" required></label>
+  <label>End location <input type="text" name="end_location" required></label>
+  <label>Miles <input type="number" step="any" min="0.01" name="miles" required></label>
+  <label>Purpose <input type="text" name="purpose" required></label>
+  {% if all_users %}
+  <label>File for (Admin/Supervisor only)
+    <select name="user_email">
+      {% for u in all_users %}
+      <option value="{{ u.email }}">{{ u.full_name }} ({{ u.email }})</option>
+      {% endfor %}
+    </select>
+  </label>
+  {% endif %}
+  <button type="submit">Save mileage</button>
+</form>
+
+<h2>Upload from CSV / Excel</h2>
+<p>Format: date, start_location, end_location, miles, purpose</p>
+<form method="post" action="{{ url_for('mileage.upload_mileage') }}" enctype="multipart/form-data">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <label>Upload Mileage Log <input type="file" name="file" accept=".csv,.xlsx" required></label>
+  <button type="submit">Upload (one transaction)</button>
+</form>
+<p>Bulk upload validates all rows first, then inserts them in one transaction. A bad row rejects the whole file — nothing is half-imported.</p>
+{% endblock %}

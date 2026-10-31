@@ -1,6 +1,6 @@
-"""SQLite storage for workspace-monitor.
+"""SQLite storage for workspace-monitor (Flask build).
 
-Schema creation and demo seeding are deliberately separate in v2.
+Schema creation and demo seeding are deliberately separate.
 v1 mixed them in one ``init_db()`` and seeded with ``random`` on
 every empty database, so two fresh checkouts never had the same
 data. Here ``init_db()`` only creates tables (and adds the v2
@@ -9,7 +9,7 @@ data. Here ``init_db()`` only creates tables (and adds the v2
 and is a no-op once any user exists.
 
 The database path is ``WORKSPACE_MONITOR_DB`` or, by default,
-``src/api/monitor.db`` next to this file. The file is gitignored:
+``workspace_monitor/monitor.db`` next to this file. The file is gitignored:
 it is runtime state, not source, and must never be committed again.
 
 Demo data is fictional (``@example.com`` users, Virginia hub
@@ -25,11 +25,13 @@ import sqlite3
 from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
 
-from api.auth import Role, hash_password
+from workspace_monitor.auth import Role, hash_password
 
 DB_PATH = Path(
     os.environ.get("WORKSPACE_MONITOR_DB", Path(__file__).resolve().parent / "monitor.db")
 )
+# Note: in tests and in freeze.py, WORKSPACE_MONITOR_DB is set before
+# this module is imported, so the path above is the test/freeze DB.
 
 DEMO_USERS = [
     # (email, full name, department, title, role)
@@ -139,10 +141,6 @@ CREATE TABLE IF NOT EXISTS contacts (
     phone TEXT,
     category TEXT
 );
-CREATE TABLE IF NOT EXISTS revoked_tokens (
-    jti TEXT PRIMARY KEY,
-    revoked_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
 CREATE INDEX IF NOT EXISTS idx_attendance_user
     ON attendance (user_email, clock_in_time DESC);
 CREATE INDEX IF NOT EXISTS idx_schedule_user
@@ -161,8 +159,19 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_attendance_open_shift
 """
 
 
-def get_db_connection() -> sqlite3.Connection:
-    conn = sqlite3.connect(DB_PATH)
+def get_db_connection(db_path=None) -> sqlite3.Connection:
+    # In a request, the app's configured path wins (tests and the
+    # freeze script set it via create_app); otherwise fall back
+    # to the module-level path computed from the environment.
+    if db_path is None:
+        try:
+            from flask import current_app, has_app_context
+
+            if has_app_context() and "WM_DB_PATH" in current_app.config:
+                db_path = current_app.config["WM_DB_PATH"]
+        except Exception:
+            db_path = None
+    conn = sqlite3.connect(db_path or DB_PATH)
     conn.row_factory = sqlite3.Row
     # Foreign keys are declared in the schema but SQLite does not
     # enforce them unless each connection opts in; WAL lets readers
@@ -172,9 +181,9 @@ def get_db_connection() -> sqlite3.Connection:
     return conn
 
 
-def init_db() -> None:
+def init_db(db_path=None) -> None:
     """Create tables; add ``password_hash`` to a pre-v2 database in place."""
-    conn = get_db_connection()
+    conn = get_db_connection(db_path)
     try:
         conn.executescript(SCHEMA)
         columns = {row[1] for row in conn.execute("PRAGMA table_info(users)")}
@@ -194,14 +203,14 @@ def demo_password() -> str:
     return os.environ.get("WORKSPACE_MONITOR_DEMO_PASSWORD", "Demo1234!")
 
 
-def seed_demo_data() -> int:
+def seed_demo_data(db_path=None) -> int:
     """Insert the deterministic demo dataset. Returns users inserted.
 
     A no-op when the users table is non-empty, so re-running the
     seeder (or restarting the API) never duplicates demo rows.
     """
-    init_db()
-    conn = get_db_connection()
+    init_db(db_path)
+    conn = get_db_connection(db_path)
     try:
         if conn.execute("SELECT COUNT(*) FROM users").fetchone()[0] > 0:
             return 0

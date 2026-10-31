@@ -1,16 +1,17 @@
-"""Authentication for workspace-monitor v2.
+"""Authentication for workspace-monitor (Flask build).
 
-v1's "token" was the literal string ``email:role`` and login took an
-email with no password, so any client could forge an Admin token.
-v2 issues a signed JWT after verifying a bcrypt password hash, and
-every request re-checks the user against the database so a revoked,
-suspended, or role-changed account stops working immediately.
+Passwords are bcrypt hashes. Sessions are server-side Flask
+sessions (signed cookie holding only the email); every request
+re-checks the user against the database, so a suspended or
+role-changed account stops working without waiting for a
+session to expire, and logout simply clears the session —
+no token revocation table is needed, unlike the v2 JWT build.
 
-The signing secret comes from ``WORKSPACE_MONITOR_SECRET_KEY``. When
-it is unset (local demo use) an ephemeral per-process secret is
-generated and a warning is logged: tokens then stop working on
-restart, which is the safe default. Never ship the demo seed data
-with a production secret, and never commit a real secret.
+The session secret comes from ``WORKSPACE_MONITOR_SECRET_KEY``.
+When it is unset (local demo use) an ephemeral per-process
+secret is generated and a warning is logged. Never ship the
+demo seed data with a production secret, and never commit a
+real secret.
 """
 
 from __future__ import annotations
@@ -18,21 +19,15 @@ from __future__ import annotations
 import logging
 import os
 import secrets
-import uuid
-from datetime import datetime, timedelta, timezone
 from enum import Enum
 
 import bcrypt
-import jwt
 
 logger = logging.getLogger(__name__)
 
-ALGORITHM = "HS256"
-TOKEN_TTL = timedelta(hours=8)
-
 
 class Role(str, Enum):
-    """The only role values stored in the database and accepted in tokens."""
+    """The only role values stored in the database."""
 
     ADMIN = "Admin"
     SUPERVISOR = "Supervisor"
@@ -88,23 +83,3 @@ def verify_password(password: str, password_hash: str | None) -> bool:
         return bcrypt.checkpw(password.encode("utf-8"), password_hash.encode("utf-8"))
     except ValueError:
         return False
-
-
-def create_access_token(email: str, role: Role) -> str:
-    now = datetime.now(timezone.utc)
-    payload = {
-        "sub": email,
-        "role": role.value,
-        # Per-token id (v2.1): enables server-side revocation on
-        # logout — without it, "logout" only cleared the frontend
-        # and the token stayed valid until expiry.
-        "jti": str(uuid.uuid4()),
-        "iat": now,
-        "exp": now + TOKEN_TTL,
-    }
-    return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
-
-
-def decode_access_token(token: str) -> dict:
-    """Decode a token or raise jwt.PyJWTError (expired, forged, malformed)."""
-    return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
