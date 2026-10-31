@@ -15,6 +15,12 @@ _TMP = Path(tempfile.mkdtemp(prefix="workspace-monitor-test-"))
 os.environ.setdefault("WORKSPACE_MONITOR_DB", str(_TMP / "test.db"))
 os.environ.setdefault("WORKSPACE_MONITOR_SECRET_KEY", "test-secret-do-not-use-in-production")
 os.environ.setdefault("WORKSPACE_MONITOR_DEMO_PASSWORD", "Demo1234!")
+# v2.1: auto-seed is opt-in in production, so tests opt in explicitly;
+# the login rate limit is raised so the suite's many logins from one
+# TestClient IP never trip it (rate limiting itself is tested in
+# test_rate_limit.py against the limiter class directly).
+os.environ.setdefault("WORKSPACE_MONITOR_AUTO_SEED", "1")
+os.environ.setdefault("WORKSPACE_MONITOR_LOGIN_MAX_FAILURES", "1000")
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 

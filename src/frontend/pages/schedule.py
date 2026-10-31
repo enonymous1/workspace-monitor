@@ -29,6 +29,7 @@ st.title("📅 Workspace Schedule & Calendar")
 if "view_date" not in st.session_state:
     st.session_state.view_date = datetime.date.today()
 
+
 # No @st.cache_data here: a cached response can outlive a session and
 # serve stale 401s after re-login (the same reason attendance is uncached).
 def fetch_schedule(emails=None):
@@ -39,6 +40,7 @@ def fetch_schedule(emails=None):
         st.error(f"Error connecting to backend: {e}")
         return []
 
+
 # --- Navigation / View Settings ---
 # Read the persisted radio value first: on the rerun triggered by a
 # Previous/Next click, the radio widget below has not run yet.
@@ -47,7 +49,7 @@ col_nav, col_view = st.columns([2, 1])
 
 with col_nav:
     st.write("### Navigation")
-    c1, c2, c3, c4 = st.columns([1,1,1,2])
+    c1, c2, c3, c4 = st.columns([1, 1, 1, 2])
     if c1.button("⬅️ Previous", key="schedule_prev_btn"):
         if view_type == "Week":
             st.session_state.view_date -= datetime.timedelta(days=7)
@@ -65,7 +67,9 @@ with col_nav:
             first = st.session_state.view_date.replace(day=1)
             st.session_state.view_date = (first + datetime.timedelta(days=32)).replace(day=1)
     with c4:
-        view_type = st.radio("Display Mode", ["Week", "Month"], horizontal=True, key="schedule_view_mode")
+        view_type = st.radio(
+            "Display Mode", ["Week", "Month"], horizontal=True, key="schedule_view_mode"
+        )
 
 with col_view:
     st.write("### Current Perspective")
@@ -89,8 +93,8 @@ if not schedule_data:
     st.write("No schedule entries found.")
 else:
     df = pd.DataFrame(schedule_data)
-    df['start_time'] = pd.to_datetime(df['start_time'])
-    df['end_time'] = pd.to_datetime(df['end_time'])
+    df["start_time"] = pd.to_datetime(df["start_time"])
+    df["end_time"] = pd.to_datetime(df["end_time"])
 
     # Map types to FullCalendar compatible event objects
     calendar_events = []
@@ -98,27 +102,25 @@ else:
         "Work": "#1f77b4",
         "Meeting": "#ff7f0e",
         "Out of Office": "#d62728",
-        "On-Call": "#2ca02c"
+        "On-Call": "#2ca02c",
     }
 
     for _, row in df.iterrows():
-        calendar_events.append({
-            "title": f"[{row['event_type']}] {row['event_title']} - {row['user_email'].split('@')[0]}",
-            "start": row['start_time'].isoformat(),
-            "end": row['end_time'].isoformat(),
-            "backgroundColor": color_map.get(row['event_type'], "#333"),
-            "borderColor": color_map.get(row['event_type'], "#333"),
-            "allDay": False
-        })
+        calendar_events.append(
+            {
+                "title": f"[{row['event_type']}] {row['event_title']} - {row['user_email'].split('@')[0]}",
+                "start": row["start_time"].isoformat(),
+                "end": row["end_time"].isoformat(),
+                "backgroundColor": color_map.get(row["event_type"], "#333"),
+                "borderColor": color_map.get(row["event_type"], "#333"),
+                "allDay": False,
+            }
+        )
 
     # Calendar options
     calendar_options = {
         "initialDate": st.session_state.view_date.isoformat(),
-        "headerToolbar": {
-            "left": "",
-            "center": "title",
-            "right": ""
-        },
+        "headerToolbar": {"left": "", "center": "title", "right": ""},
     }
 
     if view_type == "Week":
@@ -134,7 +136,7 @@ else:
     state = calendar(
         events=calendar_events,
         options=calendar_options,
-        key=f"calendar-{view_type}-{st.session_state.view_date}", # Key change triggers refresh
+        key=f"calendar-{view_type}-{st.session_state.view_date}",  # Key change triggers refresh
     )
 
     # Replaced manual list with Calendar view

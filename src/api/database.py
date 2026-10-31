@@ -22,7 +22,7 @@ from __future__ import annotations
 
 import os
 import sqlite3
-from datetime import date, datetime, time, timedelta
+from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
 
 from api.auth import Role, hash_password
@@ -139,12 +139,36 @@ CREATE TABLE IF NOT EXISTS contacts (
     phone TEXT,
     category TEXT
 );
+CREATE TABLE IF NOT EXISTS revoked_tokens (
+    jti TEXT PRIMARY KEY,
+    revoked_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_attendance_user
+    ON attendance (user_email, clock_in_time DESC);
+CREATE INDEX IF NOT EXISTS idx_schedule_user
+    ON schedule (user_email, start_time ASC);
+CREATE INDEX IF NOT EXISTS idx_mileage_user
+    ON mileage_log (user_email, date DESC);
+CREATE INDEX IF NOT EXISTS idx_contacts_owner
+    ON contacts (owner_email, full_name ASC);
+CREATE INDEX IF NOT EXISTS idx_activity_viewer
+    ON drive_activity (viewer_email, view_timestamp DESC);
+-- Correctness guarantee for clock-in: at most one open shift per
+-- user. The application pre-check gives a friendly error; this
+-- index is what makes concurrent clock-ins fail closed.
+CREATE UNIQUE INDEX IF NOT EXISTS idx_attendance_open_shift
+    ON attendance (user_email) WHERE clock_out_time IS NULL;
 """
 
 
 def get_db_connection() -> sqlite3.Connection:
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
+    # Foreign keys are declared in the schema but SQLite does not
+    # enforce them unless each connection opts in; WAL lets readers
+    # proceed while one writer holds the database.
+    conn.execute("PRAGMA foreign_keys=ON;")
+    conn.execute("PRAGMA journal_mode=WAL;")
     return conn
 
 
@@ -182,9 +206,18 @@ def seed_demo_data() -> int:
         if conn.execute("SELECT COUNT(*) FROM users").fetchone()[0] > 0:
             return 0
         password_hash = hash_password(demo_password())
-        now = datetime.now()
+        now = datetime.now(timezone.utc)
         users = [
-            (email, name, dept, title, (now - timedelta(hours=1 + i)).isoformat(), 0, role.value, password_hash)
+            (
+                email,
+                name,
+                dept,
+                title,
+                (now - timedelta(hours=1 + i)).isoformat(),
+                0,
+                role.value,
+                password_hash,
+            )
             for i, (email, name, dept, title, role) in enumerate(DEMO_USERS)
         ]
         conn.executemany("INSERT INTO users VALUES (?,?,?,?,?,?,?,?)", users)
@@ -193,9 +226,24 @@ def seed_demo_data() -> int:
             "INSERT INTO drive_activity (document_id, document_name, view_timestamp, viewer_email)"
             " VALUES (?,?,?,?)",
             [
-                ("doc-1", "Q1 Financials", (now - timedelta(minutes=45)).isoformat(), "admin@example.com"),
-                ("doc-2", "VA Expansion Plan", (now - timedelta(hours=3)).isoformat(), "jane.doe@example.com"),
-                ("doc-3", "Stafford Site Logistics", (now - timedelta(minutes=10)).isoformat(), "david.m@example.com"),
+                (
+                    "doc-1",
+                    "Q1 Financials",
+                    (now - timedelta(minutes=45)).isoformat(),
+                    "admin@example.com",
+                ),
+                (
+                    "doc-2",
+                    "VA Expansion Plan",
+                    (now - timedelta(hours=3)).isoformat(),
+                    "jane.doe@example.com",
+                ),
+                (
+                    "doc-3",
+                    "Stafford Site Logistics",
+                    (now - timedelta(minutes=10)).isoformat(),
+                    "david.m@example.com",
+                ),
             ],
         )
         conn.executemany(
@@ -237,11 +285,29 @@ def seed_demo_data() -> int:
             for offset in range(-7, 21):
                 target = today + timedelta(days=offset)
                 if target.weekday() < 5:
-                    schedule.append((email, "Regular Shift", f"{target} 09:00:00", f"{target} 17:00:00", "Work"))
+                    schedule.append(
+                        (email, "Regular Shift", f"{target} 09:00:00", f"{target} 17:00:00", "Work")
+                    )
                     if offset % 3 == 0:
-                        schedule.append((email, "Project Sync", f"{target} 11:00:00", f"{target} 12:00:00", "Meeting"))
+                        schedule.append(
+                            (
+                                email,
+                                "Project Sync",
+                                f"{target} 11:00:00",
+                                f"{target} 12:00:00",
+                                "Meeting",
+                            )
+                        )
                 elif offset % 14 == 0:
-                    schedule.append((email, "Weekend Support", f"{target} 10:00:00", f"{target} 14:00:00", "On-Call"))
+                    schedule.append(
+                        (
+                            email,
+                            "Weekend Support",
+                            f"{target} 10:00:00",
+                            f"{target} 14:00:00",
+                            "On-Call",
+                        )
+                    )
         conn.executemany(
             "INSERT INTO schedule (user_email, event_title, start_time, end_time, event_type)"
             " VALUES (?,?,?,?,?)",
@@ -252,15 +318,54 @@ def seed_demo_data() -> int:
             "INSERT INTO mileage_log (user_email, date, start_location, end_location, miles, purpose, status)"
             " VALUES (?,?,?,?,?,?,?)",
             [
-                ("admin@example.com", "2023-10-01", "Office", "Client Site A", 15.5, "Project Consultation", "verified"),
-                ("user@example.com", "2023-10-01", "Home", "Office", 12.0, "Daily Commute", "pending"),
-                ("user@example.com", "2023-10-02", "Office", "Post Office", 2.5, "Mailing documents", "pending"),
-                ("jane.doe@example.com", "2023-10-01", "Home", "Airport", 25.0, "Business Travel", "verified"),
+                (
+                    "admin@example.com",
+                    "2023-10-01",
+                    "Office",
+                    "Client Site A",
+                    15.5,
+                    "Project Consultation",
+                    "verified",
+                ),
+                (
+                    "user@example.com",
+                    "2023-10-01",
+                    "Home",
+                    "Office",
+                    12.0,
+                    "Daily Commute",
+                    "pending",
+                ),
+                (
+                    "user@example.com",
+                    "2023-10-02",
+                    "Office",
+                    "Post Office",
+                    2.5,
+                    "Mailing documents",
+                    "pending",
+                ),
+                (
+                    "jane.doe@example.com",
+                    "2023-10-01",
+                    "Home",
+                    "Airport",
+                    25.0,
+                    "Business Travel",
+                    "verified",
+                ),
             ],
         )
 
         contacts = [
-            ("universal", "Workspace Support", "IT Support", "support@workspace.com", "555-0100", "Universal"),
+            (
+                "universal",
+                "Workspace Support",
+                "IT Support",
+                "support@workspace.com",
+                "555-0100",
+                "Universal",
+            ),
             ("universal", "HR Benefits", "HR Main", "hr@workspace.com", "555-0101", "Universal"),
         ]
         for i, (email, name, _dept, title, role) in enumerate(DEMO_USERS):

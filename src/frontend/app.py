@@ -61,7 +61,9 @@ def show_landing_page():
         st.write("Enter your credentials to access the Virginia Hub.")
         demo_email = st.text_input("User Email", value="admin@example.com", key="login_email_input")
         demo_password = st.text_input("Password", type="password", key="login_password_input")
-        if st.button("🔐 Sign In", key="login_primary_btn", use_container_width=True, type="primary"):
+        if st.button(
+            "🔐 Sign In", key="login_primary_btn", use_container_width=True, type="primary"
+        ):
             login(email=demo_email, password=demo_password)
         with st.expander("🛠️ Demo credentials (demo data only)"):
             st.caption(
@@ -83,18 +85,20 @@ def show_dashboard():
     st.caption(f"Status: Logged in as **{current_role()}**")
     st.write("---")
 
-    users = fetch_data("users")
-    attendance = fetch_data("attendance")
-    mileage = fetch_data("mileage")
-    if users is None and attendance is None and mileage is None:
+    # v2.1: counts come from /api/stats (COUNT(*)), not from list
+    # endpoints capped at 100 rows — the old metrics went silently
+    # wrong past 100 rows.
+    stats = fetch_data("stats")
+    if stats is None:
         st.warning("Backend unreachable. Start it with `python run_app.py`, then reload.")
         return
     col1, col2, col3 = st.columns(3)
-    col1.metric("Users visible", len(users) if users else 0)
-    col2.metric("Attendance records", len(attendance) if attendance else 0)
-    pending = len([m for m in (mileage or []) if m.get("status") == "pending"])
-    col3.metric("Mileage entries pending", pending)
-    st.write("Use the sidebar pages for Attendance, Schedule, Mileage, Directory, and Distance Calculator.")
+    col1.metric("Users visible", stats.get("users", 0))
+    col2.metric("Attendance records", stats.get("attendance_records", 0))
+    col3.metric("Mileage entries pending", stats.get("pending_mileage", 0))
+    st.write(
+        "Use the sidebar pages for Attendance, Schedule, Mileage, Directory, and Distance Calculator."
+    )
 
 
 if not st.session_state.is_logged_in:

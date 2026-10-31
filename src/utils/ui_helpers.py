@@ -24,7 +24,7 @@ import streamlit as st
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from utils.api_client import api_get, api_post, get_auth_headers  # noqa: E402
+from utils.api_client import ApiError, api_get, api_post, get_auth_headers  # noqa: E402
 
 
 def current_role() -> str:
@@ -55,14 +55,24 @@ def auth_headers() -> dict:
 
 
 def fetch_data(endpoint: str, email: str | None = None):
-    """Fetch from the backend with token auth; None on failure."""
+    """Fetch from the backend with token auth; None on failure.
+
+    401 maps to a login prompt; anything else maps to a generic
+    message. Raw exception text never reaches the user (v2.0
+    showed it), and the backend's detail is not leaked either.
+    """
     params = {}
     if email:
         params["email"] = email
     try:
         return api_get(endpoint, token=session_token(), params=params or None)
-    except Exception:
-        st.error(f"Failed to fetch data from {endpoint}. Is the backend running or is your session expired?")
+    except ApiError as exc:
+        if exc.status == 401:
+            st.error("Session expired — please log in again.")
+        elif exc.status == 0:
+            st.error("Backend unreachable. Start it with `python run_app.py`, then reload.")
+        else:
+            st.error("Could not load data. Please try again.")
         return None
 
 
@@ -70,8 +80,13 @@ def login(email: str, password: str) -> bool:
     """Log in with email + password. Returns True on success."""
     try:
         data = api_post("login", {"email": email, "password": password})
-    except Exception as exc:
-        st.error(f"Login failed: {exc}")
+    except ApiError as exc:
+        if exc.status == 429:
+            st.error("Too many failed login attempts. Try again later.")
+        elif exc.status == 0:
+            st.error("Backend unreachable. Start it with `python run_app.py`, then reload.")
+        else:
+            st.error("Login failed: invalid email or password.")
         return False
     st.session_state.is_logged_in = True
     st.session_state.user_role = data["role"]
@@ -83,6 +98,13 @@ def login(email: str, password: str) -> bool:
 
 
 def logout() -> None:
+    # Revoke server-side first (v2.1): v2.0 logout only cleared
+    # session state and the JWT stayed valid until expiry.
+    # A failed revoke must not block local logout, so swallow it.
+    try:
+        api_post("logout", {}, token=session_token())
+    except Exception:
+        pass
     st.session_state.is_logged_in = False
     st.session_state.user_role = None
     st.session_state.user_email = None

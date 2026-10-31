@@ -9,8 +9,7 @@ from streamlit_js_eval import get_geolocation
 
 # Add project root to path for imports
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
-from utils.config import API_BASE_URL
-from utils.ui_helpers import auth_headers as get_auth_headers
+from utils.api_client import api_get, api_post
 from utils.ui_helpers import current_role, enforce_login, show_common_sidebar
 
 st.set_page_config(
@@ -33,31 +32,32 @@ st.caption("Captures high-accuracy GPS coordinates via your browser's location s
 
 location = get_geolocation()
 
+
 def perform_clock_action(action_type, lat, lon, location_name="Mobile Capture"):
     try:
-        url = f"{API_BASE_URL}/attendance/{action_type}"
-        payload = {
-            "latitude": lat,
-            "longitude": lon,
-            "location_name": location_name
-        }
-        res = requests.post(url, json=payload, headers=get_auth_headers())
-        if res.status_code == 200:
-            st.success(f"Successfully {action_type.replace('-', ' ')}!")
-            time.sleep(1)
-            # Use query params to trigger a refresh in a simple way
-            st.rerun()
-        else:
-            st.error(f"Action failed: {res.json().get('detail', 'Unknown error')}")
-    except Exception as e:
-        st.error(f"Connection error: {e}")
+        api_post(
+            f"attendance/{action_type}",
+            {"latitude": lat, "longitude": lon, "location_name": location_name},
+            token=st.session_state.get("auth_token", ""),
+        )
+        st.success(f"Successfully {action_type.replace('-', ' ')}!")
+        time.sleep(1)
+        st.rerun()
+    except Exception:
+        # api_client raises ApiError with a parsed detail; do not
+        # show raw exception text, and do not crash on non-JSON
+        # error pages (the v2.0 res.json() call did exactly that).
+        st.error("Clock action failed. Please try again.")
+
 
 if location:
-    if 'error' in location:
-        st.error(f"📍 Location Access Denied/Failed: {location['error'].get('message', 'Unknown Error')}. Please enable GPS permissions.")
+    if "error" in location:
+        st.error(
+            f"📍 Location Access Denied/Failed: {location['error'].get('message', 'Unknown Error')}. Please enable GPS permissions."
+        )
     else:
-        coords = location['coords']
-        lat, lon = coords['latitude'], coords['longitude']
+        coords = location["coords"]
+        lat, lon = coords["latitude"], coords["longitude"]
 
         # --- Optimized Reverse Geocoding ---
         # Cache for 1 hour; round coords to 4 decimal places (~11m)
@@ -78,7 +78,7 @@ if location:
                         addr.get("road"),
                         addr.get("city") or addr.get("town") or addr.get("village"),
                         addr.get("state"),
-                        addr.get("postcode")
+                        addr.get("postcode"),
                     ]
                     # Filter out None and join
                     full_addr = ", ".join([p for p in parts if p])
@@ -89,7 +89,7 @@ if location:
 
         readable_address = get_address_from_coords(round(lat, 4), round(lon, 4))
 
-        col_in, col_out, col_info = st.columns([1,1,3])
+        col_in, col_out, col_info = st.columns([1, 1, 3])
         with col_in:
             if st.button("🚀 Clock In", key="attendance_clock_in_btn", use_container_width=True):
                 perform_clock_action("clock-in", lat, lon, readable_address)
@@ -99,7 +99,8 @@ if location:
         with col_info:
             # Enhanced coordinate + address information display
             # Using inherit and semi-transparent backgrounds to ensure theme compatibility
-            st.markdown(f"""
+            st.markdown(
+                f"""
             <div style="background-color:rgba(28, 131, 225, 0.15); padding:15px; border-radius:10px; border:1px solid rgba(28, 131, 225, 0.3)">
                 <p style="margin:0; font-weight:bold; color:#1C83E1; font-size:1.1em;">📍 Current GPS Lock</p>
                 <div style="margin:8px 0;">
@@ -115,25 +116,25 @@ if location:
                     <b>Speed:</b> {f"{coords.get('speed', 0) * 2.237:.1f} mph" if coords.get('speed') else "0 mph"}
                 </p>
             </div>
-            """, unsafe_allow_html=True)
+            """,
+                unsafe_allow_html=True,
+            )
 else:
-    st.warning("⌛ Waiting for GPS/Location lock... If on mobile, ensure Safari/Chrome has location permissions enabled.")
+    st.warning(
+        "⌛ Waiting for GPS/Location lock... If on mobile, ensure Safari/Chrome has location permissions enabled."
+    )
 
 st.divider()
+
 
 def fetch_attendance():
     """Fetches attendance without @st.cache_data to avoid stale 401s."""
     try:
-        url = f"{API_BASE_URL}/attendance"
-        response = requests.get(url, headers=get_auth_headers())
-        if response.status_code == 200:
-            return response.json()
-        else:
-            st.error(f"Failed to fetch attendance: {response.status_code}")
-            return []
-    except Exception as e:
-        st.error(f"Error connecting to backend: {e}")
+        return api_get("attendance", token=st.session_state.get("auth_token", ""))
+    except Exception:
+        st.error("Error connecting to backend.")
         return []
+
 
 # --- Data Presentation ---
 attendance_data = fetch_attendance()
@@ -144,11 +145,11 @@ else:
     df = pd.DataFrame(attendance_data)
 
     # Pre-process columns for better display
-    df['clock_in_time'] = pd.to_datetime(df['clock_in_time'])
-    df['clock_out_time'] = pd.to_datetime(df['clock_out_time'])
+    df["clock_in_time"] = pd.to_datetime(df["clock_in_time"])
+    df["clock_out_time"] = pd.to_datetime(df["clock_out_time"])
 
     # Calculate duration
-    df['duration_hrs'] = (df['clock_out_time'] - df['clock_in_time']).dt.total_seconds() / 3600
+    df["duration_hrs"] = (df["clock_out_time"] - df["clock_in_time"]).dt.total_seconds() / 3600
 
     # Handle Role-based UI
     if current_role() == "Admin":
@@ -159,43 +160,48 @@ else:
 
         with col1:
             # User selection filter with search functionality
-            users_list = sorted(df['user_email'].unique().tolist())
+            users_list = sorted(df["user_email"].unique().tolist())
             selected_user = st.selectbox(
                 "🔍 Search & Filter by User Email:",
                 ["All Users"] + users_list,
                 index=0,
-                help="Type to search for a specific user email or select from the dropdown."
+                help="Type to search for a specific user email or select from the dropdown.",
             )
 
         with col2:
-            st.write("") # Spacer
-            st.write("") # Spacer
-            if st.button("📇 View Directory/Users", help="Go to the Organization Directory to see a full list of contacts and users."):
+            st.write("")  # Spacer
+            st.write("")  # Spacer
+            if st.button(
+                "📇 View Directory/Users",
+                help="Go to the Organization Directory to see a full list of contacts and users.",
+            ):
                 st.switch_page("pages/directory.py")
 
         if selected_user != "All Users":
-            filtered_df = df[df['user_email'] == selected_user]
+            filtered_df = df[df["user_email"] == selected_user]
         else:
             filtered_df = df
 
         # Map view for all entries
         st.write("🌍 Geolocation Points (Clock-in Locations)")
-        st.map(filtered_df[['latitude', 'longitude']], size=20, color='#ff4b4b')
+        st.map(filtered_df[["latitude", "longitude"]], size=20, color="#ff4b4b")
 
         # Table view
         st.dataframe(
-            filtered_df[['user_email', 'clock_in_time', 'clock_out_time', 'duration_hrs', 'location_name']],
+            filtered_df[
+                ["user_email", "clock_in_time", "clock_out_time", "duration_hrs", "location_name"]
+            ],
             column_config={
                 "duration_hrs": st.column_config.NumberColumn("Hours", format="%.2f"),
                 "clock_in_time": st.column_config.DatetimeColumn("Clock In"),
-                "clock_out_time": st.column_config.DatetimeColumn("Clock Out")
-            }
+                "clock_out_time": st.column_config.DatetimeColumn("Clock Out"),
+            },
         )
     else:
         st.subheader("👤 Your Attendance Records")
 
         # Simple stats
-        avg_hrs = df['duration_hrs'].mean()
+        avg_hrs = df["duration_hrs"].mean()
         st.metric("Average Daily Hours", f"{avg_hrs:.2f}")
 
         # Map and Data
@@ -203,19 +209,21 @@ else:
 
         with col_map:
             st.write("📌 Your Locations")
-            st.map(df[['latitude', 'longitude']], zoom=4)
+            st.map(df[["latitude", "longitude"]], zoom=4)
 
         with col_table:
             st.dataframe(
-                df[['clock_in_time', 'clock_out_time', 'duration_hrs', 'location_name']],
+                df[["clock_in_time", "clock_out_time", "duration_hrs", "location_name"]],
                 column_config={
                     "duration_hrs": st.column_config.NumberColumn("Hours", format="%.2f")
-                }
+                },
             )
 
 st.divider()
 with st.expander("🛠️ API Integration Technical Note"):
-    st.write("The frontend communicates with `/api/attendance` which enforces role-based security at the backend level.")
+    st.write(
+        "The frontend communicates with `/api/attendance` which enforces role-based security at the backend level."
+    )
     st.code("""
 # Backend Enforcement Summary (v2):
 # The JWT is verified and the user is re-checked in the database;

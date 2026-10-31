@@ -14,7 +14,9 @@ def test_login_wrong_password_is_401(client):
 
 def test_login_unknown_user_is_401_not_404(client):
     # Same status as a wrong password: no user enumeration.
-    response = client.post("/api/login", json={"email": "nobody@example.com", "password": "whatever"})
+    response = client.post(
+        "/api/login", json={"email": "nobody@example.com", "password": "whatever"}
+    )
     assert response.status_code == 401
 
 
@@ -45,7 +47,9 @@ def test_standard_user_sees_only_themselves(client, standard_token):
     users = client.get("/api/users", headers=auth_headers(standard_token)).json()
     assert [u["email"] for u in users] == ["user@example.com"]
     # A filter parameter cannot widen a Standard user's view.
-    filtered = client.get("/api/users?email=admin@example.com", headers=auth_headers(standard_token)).json()
+    filtered = client.get(
+        "/api/users?email=admin@example.com", headers=auth_headers(standard_token)
+    ).json()
     assert [u["email"] for u in filtered] == ["user@example.com"]
 
 
@@ -68,13 +72,22 @@ def test_clock_in_duplicate_and_out(client):
     payload = {"latitude": 38.0293, "longitude": -78.4767, "location_name": "Test HQ"}
     assert client.post("/api/attendance/clock-in", json=payload, headers=headers).status_code == 200
     assert client.post("/api/attendance/clock-in", json=payload, headers=headers).status_code == 400
-    assert client.post("/api/attendance/clock-out", json=payload, headers=headers).status_code == 200
-    assert client.post("/api/attendance/clock-out", json=payload, headers=headers).status_code == 400
+    assert (
+        client.post("/api/attendance/clock-out", json=payload, headers=headers).status_code == 200
+    )
+    assert (
+        client.post("/api/attendance/clock-out", json=payload, headers=headers).status_code == 400
+    )
 
 
 def test_clock_coordinates_are_validated(client, standard_token):
     payload = {"latitude": 500.0, "longitude": 0.0, "location_name": "Nowhere"}
-    assert client.post("/api/attendance/clock-in", json=payload, headers=auth_headers(standard_token)).status_code == 422
+    assert (
+        client.post(
+            "/api/attendance/clock-in", json=payload, headers=auth_headers(standard_token)
+        ).status_code
+        == 422
+    )
 
 
 def test_mileage_spoof_is_blocked(client, standard_token, admin_token):
@@ -88,16 +101,23 @@ def test_mileage_spoof_is_blocked(client, standard_token, admin_token):
         "miles": 9.5,
         "purpose": "Spoof test trip",
     }
-    assert client.post("/api/mileage", json=payload, headers=auth_headers(standard_token)).status_code == 200
+    assert (
+        client.post("/api/mileage", json=payload, headers=auth_headers(standard_token)).status_code
+        == 200
+    )
     mine = client.get("/api/mileage", headers=auth_headers(standard_token)).json()
-    assert any(m["purpose"] == "Spoof test trip" and m["user_email"] == "user@example.com" for m in mine)
+    assert any(
+        m["purpose"] == "Spoof test trip" and m["user_email"] == "user@example.com" for m in mine
+    )
     admins = client.get(
         "/api/mileage?user_email=admin@example.com", headers=auth_headers(admin_token)
     ).json()
     assert not any(m["purpose"] == "Spoof test trip" for m in admins)
 
 
-def test_admin_can_create_contact_for_other_and_standard_cannot(client, admin_token, standard_token):
+def test_admin_can_create_contact_for_other_and_standard_cannot(
+    client, admin_token, standard_token
+):
     payload = {
         "owner_email": "someone-else@example.com",
         "full_name": "Other Person",
@@ -107,12 +127,28 @@ def test_admin_can_create_contact_for_other_and_standard_cannot(client, admin_to
         "category": "Client",
     }
     # v1 denied real Admins here (lowercase "admin" comparison).
-    assert client.post("/api/contacts", json=payload, headers=auth_headers(admin_token)).status_code == 200
-    assert client.post("/api/contacts", json=payload, headers=auth_headers(standard_token)).status_code == 403
+    assert (
+        client.post("/api/contacts", json=payload, headers=auth_headers(admin_token)).status_code
+        == 200
+    )
+    assert (
+        client.post("/api/contacts", json=payload, headers=auth_headers(standard_token)).status_code
+        == 403
+    )
     contacts = client.get("/api/contacts", headers=auth_headers(admin_token)).json()
     contact = next(c for c in contacts if c["email"] == "other-person@example.com")
-    assert client.delete(f"/api/contacts/{contact['id']}", headers=auth_headers(admin_token)).status_code == 200
-    assert client.delete(f"/api/contacts/{contact['id']}", headers=auth_headers(admin_token)).status_code == 404
+    assert (
+        client.delete(
+            f"/api/contacts/{contact['id']}", headers=auth_headers(admin_token)
+        ).status_code
+        == 200
+    )
+    assert (
+        client.delete(
+            f"/api/contacts/{contact['id']}", headers=auth_headers(admin_token)
+        ).status_code
+        == 404
+    )
 
 
 def test_standard_can_create_contact_for_themselves(client, standard_token):
@@ -124,12 +160,18 @@ def test_standard_can_create_contact_for_themselves(client, standard_token):
         "phone": "555-8888",
         "category": "Team",
     }
-    assert client.post("/api/contacts", json=payload, headers=auth_headers(standard_token)).status_code == 200
+    assert (
+        client.post("/api/contacts", json=payload, headers=auth_headers(standard_token)).status_code
+        == 200
+    )
 
 
 def test_route_cache_roundtrip(client, admin_token):
     headers = auth_headers(admin_token)
-    assert client.get("/api/route-cache?addr_start=Nowhere&addr_end=Elsewhere", headers=headers).json() is None
+    assert (
+        client.get("/api/route-cache?addr_start=Nowhere&addr_end=Elsewhere", headers=headers).json()
+        is None
+    )
     payload = {
         "addr_start": "Nowhere",
         "addr_end": "Elsewhere",
@@ -138,5 +180,7 @@ def test_route_cache_roundtrip(client, admin_token):
         "geometry_polyline": "abc",
     }
     assert client.post("/api/route-cache", json=payload, headers=headers).status_code == 200
-    cached = client.get("/api/route-cache?addr_start=nowhere&addr_end=elsewhere", headers=headers).json()
+    cached = client.get(
+        "/api/route-cache?addr_start=nowhere&addr_end=elsewhere", headers=headers
+    ).json()
     assert cached["distance_miles"] == 12.5

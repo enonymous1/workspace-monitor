@@ -49,7 +49,12 @@ def test_forged_v1_style_token_fails():
 def test_expired_token_fails():
     now = datetime.now(timezone.utc)
     token = jwt.encode(
-        {"sub": "admin@example.com", "role": "Admin", "iat": now - timedelta(hours=2), "exp": now - timedelta(hours=1)},
+        {
+            "sub": "admin@example.com",
+            "role": "Admin",
+            "iat": now - timedelta(hours=2),
+            "exp": now - timedelta(hours=1),
+        },
         SECRET_KEY,
         algorithm=ALGORITHM,
     )

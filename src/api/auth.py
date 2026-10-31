@@ -18,6 +18,7 @@ from __future__ import annotations
 import logging
 import os
 import secrets
+import uuid
 from datetime import datetime, timedelta, timezone
 from enum import Enum
 
@@ -94,6 +95,10 @@ def create_access_token(email: str, role: Role) -> str:
     payload = {
         "sub": email,
         "role": role.value,
+        # Per-token id (v2.1): enables server-side revocation on
+        # logout — without it, "logout" only cleared the frontend
+        # and the token stayed valid until expiry.
+        "jti": str(uuid.uuid4()),
         "iat": now,
         "exp": now + TOKEN_TTL,
     }

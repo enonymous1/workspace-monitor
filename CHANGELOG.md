@@ -1,5 +1,92 @@
 # Changelog
 
+## 2.1.0 — 2026-10-31
+
+Staff-review implementation (from the 2026-10-31 staff review,
+delivered separately and not part of this repo). Verified:
+ruff clean, ruff format clean, 39/39 pytest tests pass from
+a fresh extraction.
+
+### Breaking changes
+
+- **Auto-seed is now opt-in.** `WORKSPACE_MONITOR_AUTO_SEED`
+  defaults to `0`; a fresh database is empty until you run
+  `python scripts/seed_demo.py` (or set the variable to `1`
+  for a demo run). v2.0 seeded any empty database by default,
+  which could silently put demo users into a production DB.
+- **Pre-v2.1 JWTs are rejected.** Tokens issued before this
+  release have no `jti` and cannot be revoked; they are
+  refused outright. Re-login after upgrading (old tokens
+  expire within 8 hours anyway).
+- **Posting `status` on mileage is now a 422.** v2.0 accepted
+  it and silently dropped it; the create schema forbids extra
+  fields so the contract is explicit.
+
+### Security
+
+- `POST /api/logout` revokes the token's `jti` server-side;
+  revoked tokens are rejected on every request.
+- Failed-login rate limiting per IP (5 failures in 15
+  minutes → 429; configurable via
+  `WORKSPACE_MONITOR_LOGIN_MAX_FAILURES` /
+  `WORKSPACE_MONITOR_LOGIN_WINDOW_SECONDS`). This is
+  per-process — production deployments should also
+  rate-limit at the reverse proxy.
+- Clock-in/out timestamps are UTC, not naive local time.
+
+### Added
+
+- `GET /api/stats` — dashboard counts via `COUNT(*)`, fixing
+  home-page metrics that previously capped at the list limit
+  of 100 rows.
+- `POST /api/mileage/bulk` — up to 500 entries in one
+  transaction, replacing the frontend's one-request-per-row
+  upload (which left half-imported files on failure).
+- `GET /api/schedule` now accepts `start`/`end` date filters.
+- Typed `AuthContext` (frozen dataclass) replaces the untyped
+  auth `dict`; shared `Pagination` dependency replaces seven
+  copy-pasted limit/offset blocks.
+- Frontend `ApiError` taxonomy: 401 → "session expired",
+  429 → rate-limit message, backend-down → a clear message;
+  raw exception text is no longer shown to users.
+- Distance page: Nominatim/OSRM calls now have 10 s timeouts,
+  use HTTPS for OSRM, and cache only successes (failures are
+  no longer cached for an hour).
+- Indexes on all list-query columns, a partial unique index
+  on open attendance shifts (concurrent clock-ins now fail
+  closed), WAL mode, and per-connection foreign-key
+  enforcement. `ruff format` is now enforced in CI.
+
+### Fixed
+
+- `hr_data.clock_in_status` is derived from open attendance
+  shifts instead of a stale stored flag that clock-in/out
+  never updated.
+- Successful logins now update `last_login_time` (v2.0 left
+  the seed timestamp in place).
+- Mileage bulk upload normalizes Excel timestamps to
+  `YYYY-MM-DD` (v2.0 stored them as datetime strings) and
+  validates required columns before uploading.
+- Attendance page uses the shared `api_client` for backend
+  calls instead of raw `requests` (the last page still doing
+  so); mileage date and contact email are validated by
+  Pydantic (`date` type, `EmailStr`); route polylines are
+  capped at 1,000,000 characters.
+- `pyproject.toml` version and the FastAPI app version are
+  pinned together by `tests/test_version.py`, so a bump in
+  one place cannot drift from the other.
+
+### Still open (not in this release)
+
+- Full router + repository split (endpoints still live in
+  `main.py`, now with typed auth and pagination), Alembic
+  migrations (the hand-rolled `ALTER TABLE` check in
+  `init_db` remains), a single settings object (config is
+  still read from `os.environ` in several modules), the
+  `src/` + `sys.path` package layout, and a schedule/mileage
+  approval workflow. These are the next review items, not
+  hidden gaps — see the review's §3.2 order.
+
 ## 2.0.0 — 2026-10-26
 
 Full modernization of the v1 FastAPI + Streamlit dashboard. The

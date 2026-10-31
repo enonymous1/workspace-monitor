@@ -83,7 +83,9 @@ def run_workspace_app() -> None:
             if not wait_for_health():
                 print("⚠️  Backend did not report healthy within 30s; check its output above.")
         if is_port_in_use(FRONTEND_PORT):
-            print(f"⚠️  Port {FRONTEND_PORT} (Frontend) is already in use. Skipping frontend launch.")
+            print(
+                f"⚠️  Port {FRONTEND_PORT} (Frontend) is already in use. Skipping frontend launch."
+            )
         else:
             streamlit = venv_executable("streamlit.exe" if os.name == "nt" else "streamlit")
             if not streamlit.exists():
@@ -92,7 +94,13 @@ def run_workspace_app() -> None:
                 print(f"✅ Launching Streamlit Frontend on port {FRONTEND_PORT}...")
                 children.append(
                     subprocess.Popen(
-                        [str(streamlit), "run", "src/frontend/app.py", "--server.port", str(FRONTEND_PORT)],
+                        [
+                            str(streamlit),
+                            "run",
+                            "src/frontend/app.py",
+                            "--server.port",
+                            str(FRONTEND_PORT),
+                        ],
                         cwd=ROOT,
                     )
                 )

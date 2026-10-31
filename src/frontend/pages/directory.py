@@ -23,12 +23,14 @@ show_common_sidebar()
 
 st.title("📇 Workspace Directory")
 
+
 def fetch_contacts():
     try:
         return api_get("contacts", token=st.session_state.get("auth_token", ""))
     except Exception as e:
         st.error(f"Error fetching directory: {e}")
     return []
+
 
 def delete_contact(contact_id):
     try:
@@ -38,6 +40,7 @@ def delete_contact(contact_id):
         st.error(f"Error deleting contact: {e}")
     return False
 
+
 def add_contact(data):
     try:
         api_post("contacts", data, token=st.session_state.get("auth_token", ""))
@@ -45,6 +48,7 @@ def add_contact(data):
     except Exception as e:
         st.error(f"Error adding contact: {e}")
     return False
+
 
 # --- UI Layout ---
 tab1, tab2 = st.tabs(["👥 Directory", "🛠️ Manage Contacts"])
@@ -61,9 +65,11 @@ with tab1:
         if search_query:
             df = df[df.apply(lambda row: search_query.lower() in str(row).lower(), axis=1)]
 
-        category_filter = st.multiselect("Filter by Category", df['category'].unique(), key="directory_category_filter")
+        category_filter = st.multiselect(
+            "Filter by Category", df["category"].unique(), key="directory_category_filter"
+        )
         if category_filter:
-            df = df[df['category'].isin(category_filter)]
+            df = df[df["category"].isin(category_filter)]
 
         # Display Contacts in Cards/List
         for _, contact in df.iterrows():
@@ -71,12 +77,21 @@ with tab1:
                 col_icon, col_info, col_extra = st.columns([1, 4, 2])
 
                 # Determine icon/color by category
-                cat_color = "#1f77b4" if contact['category'] == 'Universal' else \
-                           "#2ca02c" if contact['category'] == 'Supervisor' else \
-                           "#ff7f0e" if contact['category'] == 'Team' else "#666"
+                cat_color = (
+                    "#1f77b4"
+                    if contact["category"] == "Universal"
+                    else "#2ca02c"
+                    if contact["category"] == "Supervisor"
+                    else "#ff7f0e"
+                    if contact["category"] == "Team"
+                    else "#666"
+                )
 
                 with col_icon:
-                    st.markdown(f'<div style="font-size: 40px; text-align: center; color: {cat_color};">👤</div>', unsafe_allow_html=True)
+                    st.markdown(
+                        f'<div style="font-size: 40px; text-align: center; color: {cat_color};">👤</div>',
+                        unsafe_allow_html=True,
+                    )
 
                 with col_info:
                     st.markdown(f"**{contact['full_name']}**")
@@ -84,10 +99,13 @@ with tab1:
                     st.write(f"📧 {contact['email']} | 📞 {contact['phone']}")
 
                 with col_extra:
-                    st.markdown(f'<span style="background-color: {cat_color}; border-radius: 12px; padding: 2px 10px; color: white; float: right;">{contact["category"]}</span>', unsafe_allow_html=True)
-                    if contact['owner_email'] == 'universal':
+                    st.markdown(
+                        f'<span style="background-color: {cat_color}; border-radius: 12px; padding: 2px 10px; color: white; float: right;">{contact["category"]}</span>',
+                        unsafe_allow_html=True,
+                    )
+                    if contact["owner_email"] == "universal":
                         st.caption("🌐 (Organization Representative)")
-                    elif contact['category'] == 'Supervisor':
+                    elif contact["category"] == "Supervisor":
                         st.caption("📈 (Reporting Hierarchy)")
 
                 st.divider()
@@ -97,11 +115,17 @@ with tab1:
 with tab2:
     if current_role() == "Admin":
         st.subheader("🛠️ Organization Directory Management")
-        st.info("As an Admin, you can add Universal contacts (visible to all) or assign contacts to specific individuals.")
+        st.info(
+            "As an Admin, you can add Universal contacts (visible to all) or assign contacts to specific individuals."
+        )
 
         with st.expander("➕ Add New Contact Entry"):
             with st.form("add_contact_form"):
-                o_type = st.radio("Contact Availability", ["Universal (Organization Wide)", "Individual User Target"], horizontal=True)
+                o_type = st.radio(
+                    "Contact Availability",
+                    ["Universal (Organization Wide)", "Individual User Target"],
+                    horizontal=True,
+                )
                 target_email = "universal"
                 if o_type == "Individual User Target":
                     target_email = st.text_input("Target User Email (Owner)", value="")
@@ -111,7 +135,9 @@ with tab2:
                 j_title = c2.text_input("Job Title")
                 e_mail = c1.text_input("Contact Email")
                 p_hone = c2.text_input("Contact Phone")
-                c_ategory = st.selectbox("Category", ["Universal", "Supervisor", "Team", "Client", "Support"])
+                c_ategory = st.selectbox(
+                    "Category", ["Universal", "Supervisor", "Team", "Client", "Support"]
+                )
 
                 if st.form_submit_button("Create Contact"):
                     if not f_name or not e_mail or not target_email:
@@ -123,7 +149,7 @@ with tab2:
                             "job_title": j_title,
                             "email": e_mail,
                             "phone": p_hone,
-                            "category": c_ategory
+                            "category": c_ategory,
                         }
                         if add_contact(payload):
                             st.success("Contact created!")
@@ -135,7 +161,7 @@ with tab2:
         all_contacts = fetch_contacts()
         if all_contacts:
             del_df = pd.DataFrame(all_contacts)
-            st.dataframe(del_df[['id', 'full_name', 'owner_email', 'category']])
+            st.dataframe(del_df[["id", "full_name", "owner_email", "category"]])
             cid_to_del = st.number_input("Enter Contact ID to DELETE", min_value=1, step=1)
             if st.button("🗑️ Delete Contact Permanently", type="primary"):
                 if delete_contact(cid_to_del):
