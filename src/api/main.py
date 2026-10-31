@@ -62,7 +62,7 @@ async def lifespan(_app: FastAPI):
 app = FastAPI(
     title="workspace-monitor API",
     description="Workspace dashboard API: attendance, schedule, mileage, directory, and route cache.",
-    version="2.2.0",
+    version="2.2.1",
     lifespan=lifespan,
 )
 

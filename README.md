@@ -99,11 +99,11 @@ real app, install and run it locally instead.
 
 ```mermaid
 flowchart LR
-    Browser --> Streamlit["Streamlit frontend\n(home + 5 pages)"]
-    Streamlit -->|utils/api_client\n(JWT Bearer)| API["FastAPI backend\n(auth, routers, repositories)"]
-    API --> SQLite[(SQLite\nsrc/api/monitor.db)]
-    Streamlit -.->|distance page only| Nominatim["Nominatim\n(geocoding)"]
-    Streamlit -.->|distance page only| OSRM["OSRM\n(routing)"]
+    Browser --> Streamlit["Streamlit frontend (home + 5 pages)"]
+    Streamlit -->|JWT Bearer| API["FastAPI backend (auth, routers, repositories)"]
+    API --> SQLite[(SQLite src/api/monitor.db)]
+    Streamlit -.->|distance page only| Nominatim["Nominatim (geocoding)"]
+    Streamlit -.->|distance page only| OSRM["OSRM (routing)"]
     Seed["scripts/seed_demo.py"] --> SQLite
 ```
 

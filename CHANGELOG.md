@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.2.1 — 2026-10-31
+
+### Fixed
+
+- README Architecture diagram did not render on GitHub: the
+  Mermaid labels contained literal `\n` sequences, which
+  GitHub's Mermaid parser rejects (parse error at the
+  `API["FastAPI backend..."]` node). All labels are now
+  single-line, with no `\n` in the diagram. No code changed.
+
+
 ## 2.2.0 — 2026-10-31
 
 ### Added
