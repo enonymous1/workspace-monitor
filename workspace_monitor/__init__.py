@@ -26,7 +26,7 @@ from flask import Flask, session
 from workspace_monitor.config import Settings
 from workspace_monitor.rate_limit import LoginRateLimiter
 
-__version__ = "3.0.0"
+__version__ = "3.0.1"
 
 logger = logging.getLogger(__name__)
 

@@ -1,5 +1,20 @@
 # Changelog
 
+## 3.0.1 — 2026-10-31
+
+### Added
+
+- Light/dark theme: pages follow the device's
+  `prefers-color-scheme` by default, and a Dark/Light button in
+  the header toggles it. The toggle saves to `localStorage`
+  (`wm-theme`); a saved choice always beats the system
+  preference, and with no saved choice the page keeps
+  following system changes. The theme is set before the
+  stylesheet loads, so there is no light flash on a
+  dark-preferring device. It works on the login page and on
+  the static Pages freeze too. All colours are CSS variables;
+  Leaflet map tiles stay light (they come from OpenStreetMap).
+
 ## 3.0.0 — 2026-10-31
 
 ### Changed — BREAKING: Flask rebuild, supersedes the FastAPI + Streamlit build

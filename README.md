@@ -32,6 +32,7 @@ python -m http.server --directory freeze-site 8000
 - **Directory** — searchable contacts. Admins may create/delete any contact; other users may only create/delete their own. Supervisors see all contacts but cannot manage others'.
 - **Distance calculator** — Nominatim geocoding + OSRM routing, cached in the local database (repeated lookups never re-hit the public demo endpoints). Real example from the demo: Stafford Courthouse → Culpeper Courthouse, 43.11 miles, 62.66 minutes.
 - **Roles** — Admin, Supervisor, Standard (case-insensitive, one enum). Admins and Supervisors see all users' rows; Standard users always see only their own, even if they pass another user's email in a filter. Mileage and contacts are always attributed to the session user for Standard users.
+- **Theme** — follows your device's light/dark preference by default, with a Dark/Light button in the header to override it. Your choice is saved in the browser; with no saved choice it keeps following the system.
 
 ## Screenshots
 

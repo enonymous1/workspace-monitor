@@ -4,6 +4,20 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{% block title %}workspace-monitor{% endblock %}</title>
+<script>
+  /* Set the theme before the stylesheet loads, so there is no
+     light flash on a dark-preferring device. Saved choice wins;
+     otherwise follow prefers-color-scheme. */
+  (function () {
+    try {
+      var theme = localStorage.getItem("wm-theme");
+      if (!theme) {
+        theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      }
+      document.documentElement.setAttribute("data-theme", theme);
+    } catch (e) {}
+  })();
+</script>
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 {% block head %}{% endblock %}
 </head>
@@ -25,6 +39,7 @@
     <button type="submit">Logout</button>
   </form>
   {% endif %}
+  <button type="button" id="theme-toggle" aria-label="Toggle dark mode">Dark</button>
 </header>
 <main>
   {% with messages = get_flashed_messages(with_categories=true) %}
@@ -34,5 +49,34 @@
   {% endwith %}
   {% block content %}{% endblock %}
 </main>
+<script>
+  /* Theme toggle: flips data-theme and saves the choice. With no
+     saved choice, the page keeps following the system preference
+     as it changes. */
+  (function () {
+    var button = document.getElementById("theme-toggle");
+    if (!button) return;
+    function label() {
+      var dark = document.documentElement.getAttribute("data-theme") === "dark";
+      button.textContent = dark ? "Light" : "Dark";
+      button.setAttribute("aria-label", dark ? "Switch to light mode" : "Switch to dark mode");
+    }
+    button.addEventListener("click", function () {
+      var next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+      document.documentElement.setAttribute("data-theme", next);
+      try { localStorage.setItem("wm-theme", next); } catch (e) {}
+      label();
+    });
+    try {
+      if (!localStorage.getItem("wm-theme")) {
+        window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function (e) {
+          document.documentElement.setAttribute("data-theme", e.matches ? "dark" : "light");
+          label();
+        });
+      }
+    } catch (e) {}
+    label();
+  })();
+</script>
 </body>
 </html>

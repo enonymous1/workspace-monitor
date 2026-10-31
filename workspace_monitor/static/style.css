@@ -1,19 +1,99 @@
-body { font-family: system-ui, sans-serif; margin: 0; color: #1f1f1f; }
-header { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; padding: 1rem; background: #f0f0f0; border-bottom: 1px solid #ddd; }
+/* Theme: light by default, dark via prefers-color-scheme, or via
+   the header toggle. The toggle writes data-theme on <html> and
+   saves it to localStorage; the explicit data-theme rules come
+   last so a saved choice always beats the system preference. */
+
+:root {
+  --bg: #ffffff;
+  --text: #1f1f1f;
+  --header-bg: #f0f0f0;
+  --border: #dddddd;
+  --link: #1a73e8;
+  --brand: #111111;
+  --input-bg: #ffffff;
+  --input-text: #1f1f1f;
+  --button-bg: #f0f0f0;
+  --flash-error-bg: #fde8e8;
+  --flash-error-border: #e57373;
+  --flash-success-bg: #e6f4ea;
+  --flash-success-border: #81c995;
+  --flash-info-bg: #e8f0fe;
+  --flash-info-border: #8ab4f8;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #121212;
+    --text: #e0e0e0;
+    --header-bg: #1e1e1e;
+    --border: #333333;
+    --link: #8ab4f8;
+    --brand: #f0f0f0;
+    --input-bg: #1e1e1e;
+    --input-text: #e0e0e0;
+    --button-bg: #2a2a2a;
+    --flash-error-bg: #3d1a1a;
+    --flash-error-border: #8b3a3a;
+    --flash-success-bg: #1a2e1f;
+    --flash-success-border: #3a6b48;
+    --flash-info-bg: #1a2a44;
+    --flash-info-border: #3a5a8b;
+  }
+}
+
+html[data-theme="light"] {
+  --bg: #ffffff;
+  --text: #1f1f1f;
+  --header-bg: #f0f0f0;
+  --border: #dddddd;
+  --link: #1a73e8;
+  --brand: #111111;
+  --input-bg: #ffffff;
+  --input-text: #1f1f1f;
+  --button-bg: #f0f0f0;
+  --flash-error-bg: #fde8e8;
+  --flash-error-border: #e57373;
+  --flash-success-bg: #e6f4ea;
+  --flash-success-border: #81c995;
+  --flash-info-bg: #e8f0fe;
+  --flash-info-border: #8ab4f8;
+}
+
+html[data-theme="dark"] {
+  --bg: #121212;
+  --text: #e0e0e0;
+  --header-bg: #1e1e1e;
+  --border: #333333;
+  --link: #8ab4f8;
+  --brand: #f0f0f0;
+  --input-bg: #1e1e1e;
+  --input-text: #e0e0e0;
+  --button-bg: #2a2a2a;
+  --flash-error-bg: #3d1a1a;
+  --flash-error-border: #8b3a3a;
+  --flash-success-bg: #1a2e1f;
+  --flash-success-border: #3a6b48;
+  --flash-info-bg: #1a2a44;
+  --flash-info-border: #3a5a8b;
+}
+
+body { font-family: system-ui, sans-serif; margin: 0; background: var(--bg); color: var(--text); }
+header { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; padding: 1rem; background: var(--header-bg); border-bottom: 1px solid var(--border); }
 header nav { display: flex; gap: 1rem; flex-wrap: wrap; }
-header a { color: #1a73e8; }
-.brand { font-weight: 700; color: #111; text-decoration: none; }
+header a { color: var(--link); }
+.brand { font-weight: 700; color: var(--brand); text-decoration: none; }
+#theme-toggle { margin-left: auto; }
 main { max-width: 1100px; margin: 0 auto; padding: 1rem; }
 table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
-th, td { border: 1px solid #ddd; padding: 0.4rem 0.6rem; text-align: left; vertical-align: top; }
+th, td { border: 1px solid var(--border); padding: 0.4rem 0.6rem; text-align: left; vertical-align: top; }
 form { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: end; margin: 1rem 0; }
 form.inline { margin: 0; }
 label { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.9rem; }
-input, select, button { padding: 0.4rem 0.6rem; font-size: 1rem; }
-button { cursor: pointer; }
+input, select, button { padding: 0.4rem 0.6rem; font-size: 1rem; background: var(--input-bg); color: var(--input-text); border: 1px solid var(--border); }
+button { cursor: pointer; background: var(--button-bg); }
 .flash { padding: 0.75rem; border-radius: 6px; }
-.flash.error { background: #fde8e8; border: 1px solid #e57373; }
-.flash.success { background: #e6f4ea; border: 1px solid #81c995; }
-.flash.info { background: #e8f0fe; border: 1px solid #8ab4f8; }
+.flash.error { background: var(--flash-error-bg); border: 1px solid var(--flash-error-border); }
+.flash.success { background: var(--flash-success-bg); border: 1px solid var(--flash-success-border); }
+.flash.info { background: var(--flash-info-bg); border: 1px solid var(--flash-info-border); }
 .metrics { display: flex; gap: 2rem; flex-wrap: wrap; }
 .metrics div p { font-size: 2rem; margin: 0.25rem 0; }
