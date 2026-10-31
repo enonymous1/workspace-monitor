@@ -65,7 +65,7 @@ def terminate(process: subprocess.Popen) -> None:
 
 
 def run_workspace_app() -> None:
-    print("🚀 Starting ss-workspaceMonitor System...")
+    print("🚀 Starting workspace-monitor System...")
     children: list[subprocess.Popen] = []
     try:
         if is_port_in_use(API_PORT):

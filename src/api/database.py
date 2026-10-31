@@ -1,4 +1,4 @@
-"""SQLite storage for ss-workspaceMonitor.
+"""SQLite storage for workspace-monitor.
 
 Schema creation and demo seeding are deliberately separate in v2.
 v1 mixed them in one ``init_db()`` and seeded with ``random`` on

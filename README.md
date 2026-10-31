@@ -1,12 +1,12 @@
-# ss-workspaceMonitor
+# workspace-monitor
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 <!-- CI badge: add after the workflow has run green on main, e.g.
-     [![CI](https://github.com/enonymous1/ss-workspaceMonitor/actions/workflows/ci.yml/badge.svg)](https://github.com/enonymous1/ss-workspaceMonitor/actions/workflows/ci.yml) -->
+     [![CI](https://github.com/enonymous1/workspace-monitor/actions/workflows/ci.yml/badge.svg)](https://github.com/enonymous1/workspace-monitor/actions/workflows/ci.yml) -->
 
 ## Description
 
-ss-workspaceMonitor is a workspace dashboard for small teams:
+workspace-monitor is a workspace dashboard for small teams:
 attendance clock-in/out with geolocation, a schedule calendar,
 a mileage log with bulk upload, an organization directory, and
 a driving-distance calculator with a local route cache.
@@ -116,8 +116,8 @@ not CI-tested.
 ## Installation
 
 ```bash
-git clone https://github.com/enonymous1/ss-workspaceMonitor.git
-cd ss-workspaceMonitor
+git clone https://github.com/enonymous1/workspace-monitor.git
+cd workspace-monitor
 
 python -m venv .venv
 # Windows:

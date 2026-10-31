@@ -1,4 +1,4 @@
-"""Authentication for ss-workspaceMonitor v2.
+"""Authentication for workspace-monitor v2.
 
 v1's "token" was the literal string ``email:role`` and login took an
 email with no password, so any client could forge an Admin token.

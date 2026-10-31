@@ -10,5 +10,5 @@ import os
 
 API_BASE_URL = os.environ.get("WORKSPACE_MONITOR_API_URL", "http://127.0.0.1:8000/api")
 API_TIMEOUT_SECONDS = float(os.environ.get("WORKSPACE_MONITOR_API_TIMEOUT", "10"))
-PROJECT_TITLE = "ss-workspaceMonitor"
+PROJECT_TITLE = "workspace-monitor"
 PROJECT_ICON = "🔐"

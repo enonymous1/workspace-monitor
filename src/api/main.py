@@ -1,4 +1,4 @@
-"""ss-workspaceMonitor API v2.1 (FastAPI).
+"""workspace-monitor API v2.1 (FastAPI).
 
 v2.1 changes on top of v2.0 (see CHANGELOG.md):
 
@@ -60,7 +60,7 @@ async def lifespan(_app: FastAPI):
 
 
 app = FastAPI(
-    title="ss-workspaceMonitor API",
+    title="workspace-monitor API",
     description="Workspace dashboard API: attendance, schedule, mileage, directory, and route cache.",
     version="2.1.0",
     lifespan=lifespan,
@@ -733,4 +733,4 @@ async def delete_contact(contact_id: int, auth: AuthContext = Depends(get_curren
 
 @app.get("/", include_in_schema=False)
 async def root():
-    return {"message": "ss-workspaceMonitor API is running. Visit /docs for documentation."}
+    return {"message": "workspace-monitor API is running. Visit /docs for documentation."}
