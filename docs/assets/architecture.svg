@@ -32,5 +32,5 @@
   <line x1="160" y1="90" x2="700" y2="60" stroke="#999" stroke-width="1.2" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
   <line x1="160" y1="110" x2="700" y2="140" stroke="#999" stroke-width="1.2" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
   <line x1="480" y1="190" x2="700" y2="230" stroke="#555" stroke-width="1.5" marker-end="url(#arrow)"/>
-  <text x="440" y="285" text-anchor="middle" font-size="12" fill="#555">workspace-monitor v2.1 — Streamlit frontend, FastAPI backend, local SQLite. External services are demo-only.</text>
+  <text x="440" y="285" text-anchor="middle" font-size="12" fill="#555">workspace-monitor v2.2 — Streamlit frontend, FastAPI backend, local SQLite. External services are demo-only.</text>
 </svg>

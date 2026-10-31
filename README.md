@@ -32,6 +32,24 @@ users, and the Virginia hub locations are sample coordinates
 for the demo map. Do not point it at real employees without
 reading Security model below and Deployment first.
 
+### Live preview (screenshot freeze)
+
+A static screenshot gallery is published to GitHub Pages on every
+push to `main` (`.github/workflows/pages-freeze.yml` runs the app
+with the demo seed, captures each page with Playwright, and deploys
+the gallery). It is **viewing only** — Pages serves static files,
+so nothing in the gallery is clickable or logged in. To run the
+real app, install and run it locally instead.
+
+- Published URL (after the one-time Pages setup below):
+  https://enonymous1.github.io/workspace-monitor/
+- One-time setup: repo Settings → Pages → Build and deployment →
+  Source: **GitHub Actions**. No other Pages setting is needed.
+- Local preview: start both servers, then
+  `python scripts/capture_freeze.py --out freeze-site` and open
+  `freeze-site/index.html`. The `freeze-site/` directory is
+  generated and gitignored, never committed.
+
 ### Features
 
 - **Attendance** — clock in/out from browser geolocation,
@@ -408,7 +426,7 @@ Issues and pull requests are welcome. Please:
 ## License
 
 MIT — see [LICENSE](LICENSE). See
-[CHANGELOG.md](CHANGELOG.md) for what changed in v2.1.0
+[CHANGELOG.md](CHANGELOG.md) for what changed in v2.2.0
 and what breaks from v2.0 (auto-seed is now opt-in;
 pre-v2.1 tokens without a `jti` are rejected;
 posting `status` on mileage is now a 422).
