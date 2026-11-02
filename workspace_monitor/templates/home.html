@@ -1,12 +1,13 @@
 {% extends "base.html" %}
+{% from "components/cards.html" import widget_card %}
 {% block title %}Home — workspace-monitor{% endblock %}
 {% block content %}
 <h1>Welcome, {{ user.full_name }}!</h1>
 <p>Status: Logged in as {{ user.role.value }}</p>
-<div class="metrics">
-  <div><strong>Users visible</strong><p>{{ users }}</p></div>
-  <div><strong>Attendance records</strong><p>{{ attendance_records }}</p></div>
-  <div><strong>Mileage entries pending</strong><p>{{ pending_mileage }}</p></div>
+<div class="row">
+  {{ widget_card("Users visible", users, "bi-people", "primary") }}
+  {{ widget_card("Attendance records", attendance_records, "bi-clock", "success") }}
+  {{ widget_card("Mileage entries pending", pending_mileage, "bi-car-front", "warning") }}
 </div>
-<p>Use the navigation above for Attendance, Schedule, Mileage, Directory, and Distance Calculator.</p>
+<p>Use the sidebar for Attendance, Schedule, Mileage, Directory, and Distance Calculator.</p>
 {% endblock %}

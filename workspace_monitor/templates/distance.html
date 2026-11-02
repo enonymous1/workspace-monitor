@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "components/cards.html" import card %}
 {% block title %}Distance — workspace-monitor{% endblock %}
 {% block head %}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -6,13 +7,14 @@
 {% endblock %}
 {% block content %}
 <h1>Live Driving Distance Calculator</h1>
+    {% call card("Calculate distance") %}
 <p>This tool uses the free Nominatim and OSRM APIs. Results are cached locally.</p>
 
 <form method="post" action="{{ url_for('distance.distance') }}">
   <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-  <label>Start Address <input type="text" name="start" value="{{ start }}" required></label>
-  <label>End Address <input type="text" name="end" value="{{ end }}" required></label>
-  <button type="submit">Calculate Driving Distance</button>
+  <label>Start Address <input type="text" name="start" value="{{ start }}" required class="form-control"></label>
+  <label>End Address <input type="text" name="end" value="{{ end }}" required class="form-control"></label>
+  <button type="submit" class="btn btn-primary">Calculate Driving Distance</button>
 </form>
 
 {% if result %}
@@ -29,4 +31,5 @@
 </script>
 {% endif %}
 {% endif %}
+    {% endcall %}
 {% endblock %}

@@ -1,0 +1,28 @@
+{# Reusable AdminLTE cards. Import with:
+   {% from "components/cards.html" import card, widget_card %}
+   card() is a caller macro: {% call card("Title") %}...{% endcall %}
+   widget_card() is an AdminLTE small-box for a single metric. #}
+{% macro card(title) %}
+<div class="card">
+  <div class="card-header">
+    <h3 class="card-title">{{ title }}</h3>
+  </div>
+  <div class="card-body">
+    {{ caller() }}
+  </div>
+</div>
+{% endmacro %}
+
+{% macro widget_card(title, value, icon="bi-speedometer2", color="info") %}
+<div class="col-lg-3 col-6">
+  <div class="small-box text-bg-{{ color }}">
+    <div class="inner">
+      <h3>{{ value }}</h3>
+      <p>{{ title }}</p>
+    </div>
+    <div class="small-box-icon">
+      <i class="bi {{ icon }}"></i>
+    </div>
+  </div>
+</div>
+{% endmacro %}

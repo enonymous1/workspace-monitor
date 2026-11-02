@@ -1,27 +1,30 @@
 {% extends "base.html" %}
+{% from "components/cards.html" import card %}
 {% block title %}Schedule — workspace-monitor{% endblock %}
 {% block content %}
 <h1>Workspace Schedule &amp; Calendar</h1>
+    {% call card("Filters") %}
 <p>Read-only calendar. Events come from the seed data (or direct database edits); there is currently no create, edit, or delete.</p>
 
 <form method="get" action="{{ url_for('schedule.schedule') }}">
-  <label>Week starting <input type="date" name="week_start" value="{{ week_start.isoformat() }}"></label>
+  <label>Week starting <input type="date" name="week_start" value="{{ week_start.isoformat() }}" class="form-control"></label>
   {% if all_users %}
   <label>Filter users
-    <select name="user_emails" multiple>
+    <select name="user_emails" multiple class="form-select">
       {% for u in all_users %}
       <option value="{{ u.email }}" {% if u.email in selected_users %}selected{% endif %}>{{ u.full_name }} ({{ u.email }})</option>
       {% endfor %}
     </select>
   </label>
   {% endif %}
-  <button type="submit">Show</button>
+  <button type="submit" class="btn btn-primary">Show</button>
   <a href="{{ url_for('schedule.schedule', week_start=prev_week.isoformat()) }}">Previous week</a>
   <a href="{{ url_for('schedule.schedule', week_start=next_week.isoformat()) }}">Next week</a>
 </form>
 
-<h2>Week of {{ week_start.isoformat() }}</h2>
-<table>
+    {% endcall %}
+    {% call card("Week of " ~ week_start.isoformat()) %}
+<table class="table table-striped table-hover">
   <thead><tr><th>Day</th><th>Events</th></tr></thead>
   <tbody>
   {% for day in days %}
@@ -38,12 +41,14 @@
   {% endfor %}
   </tbody>
 </table>
+    {% endcall %}
 
-<h2>Calendar Legend</h2>
+    {% call card("Calendar Legend") %}
 <ul>
   <li>Work Shift</li>
   <li>Meeting</li>
   <li>On-Call</li>
   <li>Out of Office</li>
 </ul>
+    {% endcall %}
 {% endblock %}

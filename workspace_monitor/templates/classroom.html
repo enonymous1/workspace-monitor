@@ -1,11 +1,14 @@
 {% extends "base.html" %}
+{% from "components/cards.html" import card %}
 {% block title %}Classroom — workspace-monitor{% endblock %}
 {% block content %}
 <h1>Google Classroom overview</h1>
+    {% call card("Details") %}
 <p>Read-only, Admin/Supervisor only. No assignments are created, no grades are changed, and no Classroom data is stored in this app's database — it is read live on each page load.</p>
 
+    {% endcall %}
 {% if error == "not_configured" %}
-<h2>Not connected</h2>
+    {% call card("Not connected") %}
 <p>No Classroom token is configured, so no courses are shown here (and none are invented).</p>
 <ol>
   <li>In Google Cloud Console, create an OAuth client for the business's Google account and enable the Classroom API.</li>
@@ -14,16 +17,18 @@
   <li>Reload this page. If the token is rejected or expired, the error will be shown here instead of fake data.</li>
 </ol>
 <p>This page is most useful for staff training / onboarding courses. For a general business with no training classes, it will simply show an empty course list once connected.</p>
+    {% endcall %}
 {% elif error %}
-<h2>Classroom error</h2>
+    {% call card("Classroom error") %}
 <p class="flash error">{{ error }}</p>
+    {% endcall %}
 {% else %}
-<h2>Courses ({{ courses|length }})</h2>
+    {% call card("Courses (" ~ courses|length ~ ")") %}
 {% for course in courses %}
   <h3>{{ course.name }} {% if course.section %}— {{ course.section }}{% endif %}</h3>
   <p>{{ course.descriptionHeading or '' }}</p>
   {% if course.coursework %}
-  <table>
+  <table class="table table-striped table-hover">
     <thead><tr><th>Assignment</th><th>State</th><th>Due</th></tr></thead>
     <tbody>
     {% for work in course.coursework %}
@@ -35,5 +40,6 @@
   <p>No coursework returned for this course.</p>
   {% endif %}
 {% endfor %}
+    {% endcall %}
 {% endif %}
 {% endblock %}

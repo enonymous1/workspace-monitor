@@ -1,12 +1,15 @@
 {% extends "base.html" %}
+{% from "components/cards.html" import card %}
 {% block title %}Users — workspace-monitor{% endblock %}
 {% block content %}
 <h1>Workspace Users (internal)</h1>
+    {% call card("Details") %}
 <p>Admin only. These are login accounts. External people are in <a href="{{ url_for('directory.directory') }}">Directory</a>, not here — do not create a login for an external contact unless they should sign in.</p>
 <p>There is no delete: suspend instead, so attendance, mileage, and schedule history stays intact.</p>
 
-<h2>All users</h2>
-<table>
+    {% endcall %}
+    {% call card("All users") %}
+<table class="table table-striped table-hover">
   <thead><tr><th>Name</th><th>Email</th><th>Department</th><th>Title</th><th>Role</th><th>Status</th><th>Last login</th><th></th></tr></thead>
   <tbody>
   {% for row in rows %}
@@ -18,13 +21,13 @@
         <form method="post" action="{{ url_for('users.reactivate_user') }}">
           <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
           <input type="hidden" name="email" value="{{ row.email }}">
-          <button type="submit">Reactivate</button>
+          <button type="submit" class="btn btn-sm btn-success">Reactivate</button>
         </form>
         {% else %}
         <form method="post" action="{{ url_for('users.suspend_user') }}">
           <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
           <input type="hidden" name="email" value="{{ row.email }}">
-          <button type="submit">Suspend</button>
+          <button type="submit" class="btn btn-sm btn-warning">Suspend</button>
         </form>
         {% endif %}
       </td>
@@ -33,48 +36,52 @@
   </tbody>
 </table>
 
-<h2>Add user</h2>
+    {% endcall %}
+    {% call card("Add user") %}
 <form method="post" action="{{ url_for('users.add_user') }}">
   <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-  <label>Email <input type="email" name="email" required></label>
-  <label>Full name <input type="text" name="full_name" required></label>
-  <label>Department <input type="text" name="department"></label>
-  <label>Title <input type="text" name="title"></label>
+  <label>Email <input type="email" name="email" required class="form-control"></label>
+  <label>Full name <input type="text" name="full_name" required class="form-control"></label>
+  <label>Department <input type="text" name="department" class="form-control"></label>
+  <label>Title <input type="text" name="title" class="form-control"></label>
   <label>Role
-    <select name="role">
+    <select name="role" class="form-select">
       <option value="Standard">Standard</option>
       <option value="Supervisor">Supervisor</option>
       <option value="Admin">Admin</option>
     </select>
   </label>
-  <label>Password (min 8 characters) <input type="password" name="password" required></label>
-  <button type="submit">Create user</button>
+  <label>Password (min 8 characters) <input type="password" name="password" required class="form-control"></label>
+  <button type="submit" class="btn btn-primary">Create user</button>
 </form>
 
-<h2>Update user</h2>
+    {% endcall %}
+    {% call card("Update user") %}
 <form method="post" action="{{ url_for('users.update_user') }}">
   <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-  <label>Email <input type="email" name="email" required></label>
-  <label>Full name <input type="text" name="full_name" required></label>
-  <label>Department <input type="text" name="department"></label>
-  <label>Title <input type="text" name="title"></label>
+  <label>Email <input type="email" name="email" required class="form-control"></label>
+  <label>Full name <input type="text" name="full_name" required class="form-control"></label>
+  <label>Department <input type="text" name="department" class="form-control"></label>
+  <label>Title <input type="text" name="title" class="form-control"></label>
   <label>Role
-    <select name="role">
+    <select name="role" class="form-select">
       <option value="Standard">Standard</option>
       <option value="Supervisor">Supervisor</option>
       <option value="Admin">Admin</option>
     </select>
   </label>
-  <button type="submit">Update user</button>
+  <button type="submit" class="btn btn-primary">Update user</button>
 </form>
 
-<h2>Reset a user's password</h2>
+    {% endcall %}
+    {% call card("Reset a user's password") %}
 <p>Admin-initiated only. There is no self-service reset yet — share the new password with the user through a secure channel outside this app.</p>
 <form method="post" action="{{ url_for('users.reset_password') }}">
   <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-  <label>Email <input type="email" name="email" required></label>
-  <label>New password (min 8 characters) <input type="password" name="new_password" required></label>
-  <label>Confirm new password <input type="password" name="confirm_password" required></label>
-  <button type="submit">Reset password</button>
+  <label>Email <input type="email" name="email" required class="form-control"></label>
+  <label>New password (min 8 characters) <input type="password" name="new_password" required class="form-control"></label>
+  <label>Confirm new password <input type="password" name="confirm_password" required class="form-control"></label>
+  <button type="submit" class="btn btn-primary">Reset password</button>
 </form>
+    {% endcall %}
 {% endblock %}

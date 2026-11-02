@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "workspace-monitor"
-version = "3.1.0"
+version = "3.2.0"
 description = "Workspace dashboard: attendance, schedule, mileage, directory, and distance calculator (Flask + Jinja2)"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -32,7 +32,13 @@ workspace-monitor = "workspace_monitor.__main__:main"
 packages = ["workspace_monitor", "workspace_monitor.routes"]
 
 [tool.setuptools.package-data]
-workspace_monitor = ["templates/*.html", "static/*"]
+workspace_monitor = [
+    "templates/*.html",
+    "templates/components/*.html",
+    "static/*.css",
+    "static/vendor/*",
+    "static/vendor/fonts/*",
+]
 
 [tool.ruff]
 line-length = 100

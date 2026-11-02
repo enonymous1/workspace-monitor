@@ -1,11 +1,14 @@
 {% extends "base.html" %}
+{% from "components/cards.html" import card %}
 {% block title %}HR &amp; hiring — workspace-monitor{% endblock %}
 {% block content %}
 <h1>HR &amp; hiring</h1>
+    {% call card("Details") %}
 <p>Employee roster, job descriptions, and posting channels. Pay-cycle hours are Admin-only; Supervisors see the roster without pay data, Standard users see only their own row.</p>
 
-<h2>Employee roster</h2>
-<table>
+    {% endcall %}
+    {% call card("Employee roster") %}
+<table class="table table-striped table-hover">
   <thead><tr><th>Name</th><th>Email</th><th>Department</th><th>Title</th><th>Role</th><th>Status</th>{% if show_pay %}<th>Pay-cycle hours</th>{% endif %}</tr></thead>
   <tbody>
   {% for row in roster %}
@@ -19,9 +22,10 @@
 </table>
 <p>Manage accounts (create, role, suspend, password reset) on the <a href="{{ url_for('users.users') }}">Users</a> page — Admin only.</p>
 
-<h2>Job descriptions &amp; postings</h2>
+    {% endcall %}
+    {% call card("Job descriptions & postings") %}
 <p>These are local records. There is no Indeed sync: Indeed's posting APIs need partner approval, so the actual posting happens in Indeed's own dashboard (links below), and application counts here are entered manually.</p>
-<table>
+<table class="table table-striped table-hover">
   <thead><tr><th>Title</th><th>Location</th><th>Pay range</th><th>Status</th><th>Applications</th><th>Posting link</th><th>Description</th><th></th></tr></thead>
   <tbody>
   {% for job in jobs %}
@@ -32,7 +36,7 @@
         {% if can_manage %}
         <form method="post" action="{{ url_for('hr.delete_job', job_id=job.id) }}">
           <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-          <button type="submit">Delete</button>
+          <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
         </form>
         {% endif %}
       </td>
@@ -41,43 +45,47 @@
   </tbody>
 </table>
 
+    {% endcall %}
 {% if can_manage %}
-<h2>Add a job description</h2>
+    {% call card("Add a job description") %}
 <form method="post" action="{{ url_for('hr.add_job') }}">
   <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-  <label>Title <input type="text" name="title" required></label>
-  <label>Description <input type="text" name="description"></label>
-  <label>Location <input type="text" name="location"></label>
-  <label>Pay range <input type="text" name="pay_range"></label>
+  <label>Title <input type="text" name="title" required class="form-control"></label>
+  <label>Description <input type="text" name="description" class="form-control"></label>
+  <label>Location <input type="text" name="location" class="form-control"></label>
+  <label>Pay range <input type="text" name="pay_range" class="form-control"></label>
   <label>Status
-    <select name="status">
+    <select name="status" class="form-select">
       {% for s in job_statuses %}<option value="{{ s }}">{{ s }}</option>{% endfor %}
     </select>
   </label>
-  <label>Posting URL <input type="url" name="posting_url"></label>
-  <label>Applications (manual count) <input type="number" name="applications_count" value="0"></label>
-  <button type="submit">Save job</button>
+  <label>Posting URL <input type="url" name="posting_url" class="form-control"></label>
+  <label>Applications (manual count) <input type="number" name="applications_count" value="0" class="form-control"></label>
+  <button type="submit" class="btn btn-primary">Save job</button>
 </form>
 
-<h2>Update a posting</h2>
+    {% endcall %}
+    {% call card("Update a posting") %}
 <form method="post" action="{{ url_for('hr.update_job', job_id=0) }}" onsubmit="this.action='/hr/job/update/' + document.getElementById('update-job-id').value; return true;">
   <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-  <label>Job ID <input type="number" name="job_id" id="update-job-id" required></label>
+  <label>Job ID <input type="number" name="job_id" id="update-job-id" required class="form-control"></label>
   <label>Status
-    <select name="status">
+    <select name="status" class="form-select">
       {% for s in job_statuses %}<option value="{{ s }}">{{ s }}</option>{% endfor %}
     </select>
   </label>
-  <label>Posting URL <input type="url" name="posting_url"></label>
-  <label>Applications (manual count) <input type="number" name="applications_count" value="0"></label>
-  <button type="submit">Update job</button>
+  <label>Posting URL <input type="url" name="posting_url" class="form-control"></label>
+  <label>Applications (manual count) <input type="number" name="applications_count" value="0" class="form-control"></label>
+  <button type="submit" class="btn btn-primary">Update job</button>
 </form>
+    {% endcall %}
 {% endif %}
 
-<h2>Posting channels</h2>
+    {% call card("Posting channels") %}
 <ul>
   <li><a href="https://employers.indeed.com/">Indeed Employer Dashboard</a> — post jobs, review candidates, message applicants (separate Indeed account; no sync with this app).</li>
   <li><a href="https://www.indeed.com/hire">Indeed — post a job</a> — start a posting if you do not have an employer account yet.</li>
   <li><a href="https://www.linkedin.com/">LinkedIn</a> — post and share the same job description; paste its posting URL into the job record above.</li>
 </ul>
+    {% endcall %}
 {% endblock %}

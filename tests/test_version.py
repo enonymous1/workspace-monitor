@@ -14,4 +14,4 @@ def test_version_matches_pyproject():
     )
     match = re.search(r'^version = "([^"]+)"', pyproject, re.MULTILINE)
     assert match
-    assert workspace_monitor.__version__ == match.group(1) == "3.1.0"
+    assert workspace_monitor.__version__ == match.group(1) == "3.2.0"

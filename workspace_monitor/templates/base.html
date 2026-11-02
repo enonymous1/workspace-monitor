@@ -5,81 +5,180 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{% block title %}workspace-monitor{% endblock %}</title>
 <script>
-  /* Set the theme before the stylesheet loads, so there is no
+  /* Set the theme before the stylesheets load, so there is no
      light flash on a dark-preferring device. Saved choice wins;
-     otherwise follow prefers-color-scheme. */
+     otherwise follow prefers-color-scheme. AdminLTE 4 / Bootstrap
+     5.3 read this same data-bs-theme attribute; the wm-theme
+     localStorage key is unchanged from v3.0.1, so a saved choice
+     carries over. */
   (function () {
     try {
       var theme = localStorage.getItem("wm-theme");
       if (!theme) {
         theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
       }
-      document.documentElement.setAttribute("data-theme", theme);
+      document.documentElement.setAttribute("data-bs-theme", theme);
     } catch (e) {}
   })();
 </script>
+<link rel="stylesheet" href="{{ url_for('static', filename='vendor/bootstrap.min.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='vendor/bootstrap-icons.min.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='vendor/adminlte.min.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 {% block head %}{% endblock %}
 </head>
-<body>
-<header>
-  <a class="brand" href="{{ url_for('main.home') }}">workspace-monitor</a>
-  {% if current_user %}
-  <nav>
-    <a href="{{ url_for('main.home') }}">Home</a>
-    <a href="{{ url_for('attendance.attendance') }}">Attendance</a>
-    <a href="{{ url_for('schedule.schedule') }}">Schedule</a>
-    <a href="{{ url_for('mileage.mileage') }}">Mileage</a>
-    <a href="{{ url_for('directory.directory') }}">Directory</a>
-    <a href="{{ url_for('distance.distance') }}">Distance</a>
-    <a href="{{ url_for('collateral.collateral') }}">Collateral</a>
-    <a href="{{ url_for('hr.hr') }}">HR</a>
-    <a href="{{ url_for('voice.voice') }}">Voice</a>
-    {% if current_user.role.value in ('Admin', 'Supervisor') %}
-    <a href="{{ url_for('classroom.classroom') }}">Classroom</a>
-    {% endif %}
-    {% if current_user.role.value == 'Admin' %}
-    <a href="{{ url_for('users.users') }}">Users</a>
-    {% endif %}
+<body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
+<div class="app-wrapper">
+  <nav class="app-header navbar navbar-expand bg-body">
+    <div class="container-fluid">
+      <ul class="navbar-nav">
+        {% if current_user %}
+        <li class="nav-item">
+          <a class="nav-link" data-lte-toggle="sidebar" href="#" role="button" aria-label="Toggle sidebar">
+            <i class="bi bi-list"></i>
+          </a>
+        </li>
+        {% endif %}
+        <li class="nav-item d-none d-md-block">
+          <a href="{{ url_for('main.home') }}" class="nav-link">workspace-monitor</a>
+        </li>
+      </ul>
+      <ul class="navbar-nav ms-auto align-items-center">
+        {% if current_user %}
+        <li class="nav-item d-none d-lg-block">
+          <span class="nav-link">Logged in as: {{ current_user.email }} ({{ current_user.role.value }})</span>
+        </li>
+        <li class="nav-item">
+          <form method="post" action="{{ url_for('auth.logout') }}" class="d-inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <button type="submit" class="btn btn-sm btn-outline-secondary">Logout</button>
+          </form>
+        </li>
+        {% endif %}
+        <li class="nav-item ms-2">
+          <button type="button" id="theme-toggle" class="btn btn-sm btn-outline-secondary" aria-label="Toggle dark mode">Dark</button>
+        </li>
+      </ul>
+    </div>
   </nav>
-  <span class="user">Logged in as: {{ current_user.email }} ({{ current_user.role.value }})</span>
-  <form method="post" action="{{ url_for('auth.logout') }}" class="inline">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-    <button type="submit">Logout</button>
-  </form>
+  {% if current_user %}
+  <aside class="app-sidebar bg-body-secondary shadow">
+    <div class="sidebar-brand">
+      <a href="{{ url_for('main.home') }}" class="brand-link">
+        <span class="brand-text fw-light">workspace-monitor</span>
+      </a>
+    </div>
+    <div class="sidebar-wrapper">
+      <nav class="mt-2">
+        <ul class="nav sidebar-menu flex-column" data-lte-toggle="treeview" role="menu" data-accordion="false">
+          {% set section = request.endpoint.split('.')[0] if request.endpoint else '' %}
+          <li class="nav-header">MAIN</li>
+          <li class="nav-item">
+            <a href="{{ url_for('main.home') }}" class="nav-link {% if section == 'main' %}active{% endif %}">
+              <i class="nav-icon bi bi-house"></i><p>Home</p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{{ url_for('attendance.attendance') }}" class="nav-link {% if section == 'attendance' %}active{% endif %}">
+              <i class="nav-icon bi bi-clock"></i><p>Attendance</p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{{ url_for('schedule.schedule') }}" class="nav-link {% if section == 'schedule' %}active{% endif %}">
+              <i class="nav-icon bi bi-calendar-week"></i><p>Schedule</p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{{ url_for('mileage.mileage') }}" class="nav-link {% if section == 'mileage' %}active{% endif %}">
+              <i class="nav-icon bi bi-car-front"></i><p>Mileage</p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{{ url_for('distance.distance') }}" class="nav-link {% if section == 'distance' %}active{% endif %}">
+              <i class="nav-icon bi bi-geo-alt"></i><p>Distance</p>
+            </a>
+          </li>
+          <li class="nav-header">PEOPLE</li>
+          <li class="nav-item">
+            <a href="{{ url_for('directory.directory') }}" class="nav-link {% if section == 'directory' %}active{% endif %}">
+              <i class="nav-icon bi bi-people"></i><p>Directory</p>
+            </a>
+          </li>
+          {% if current_user.role.value == 'Admin' %}
+          <li class="nav-item">
+            <a href="{{ url_for('users.users') }}" class="nav-link {% if section == 'users' %}active{% endif %}">
+              <i class="nav-icon bi bi-person-gear"></i><p>Users</p>
+            </a>
+          </li>
+          {% endif %}
+          <li class="nav-header">OPERATIONS</li>
+          <li class="nav-item">
+            <a href="{{ url_for('collateral.collateral') }}" class="nav-link {% if section == 'collateral' %}active{% endif %}">
+              <i class="nav-icon bi bi-envelope-paper"></i><p>Collateral</p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{{ url_for('hr.hr') }}" class="nav-link {% if section == 'hr' %}active{% endif %}">
+              <i class="nav-icon bi bi-briefcase"></i><p>HR</p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{{ url_for('voice.voice') }}" class="nav-link {% if section == 'voice' %}active{% endif %}">
+              <i class="nav-icon bi bi-telephone"></i><p>Voice</p>
+            </a>
+          </li>
+          {% if current_user.role.value in ('Admin', 'Supervisor') %}
+          <li class="nav-item">
+            <a href="{{ url_for('classroom.classroom') }}" class="nav-link {% if section == 'classroom' %}active{% endif %}">
+              <i class="nav-icon bi bi-mortarboard"></i><p>Classroom</p>
+            </a>
+          </li>
+          {% endif %}
+        </ul>
+      </nav>
+    </div>
+  </aside>
   {% endif %}
-  <button type="button" id="theme-toggle" aria-label="Toggle dark mode">Dark</button>
-</header>
-<main>
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% for category, message in messages %}
-      <p class="flash {{ category }}">{{ message }}</p>
-    {% endfor %}
-  {% endwith %}
-  {% block content %}{% endblock %}
-</main>
+  <main class="app-main">
+    <div class="app-content">
+      <div class="container-fluid">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% for category, message in messages %}
+            <div class="alert alert-{{ 'danger' if category == 'error' else category }} mt-3" role="alert">{{ message }}</div>
+          {% endfor %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+      </div>
+    </div>
+  </main>
+  <footer class="app-footer">
+    <strong>workspace-monitor</strong> — Flask + Jinja2 + SQLite, AdminLTE 4 shell.
+  </footer>
+</div>
+<script src="{{ url_for('static', filename='vendor/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/adminlte.min.js') }}"></script>
 <script>
-  /* Theme toggle: flips data-theme and saves the choice. With no
-     saved choice, the page keeps following the system preference
-     as it changes. */
+  /* Theme toggle: flips data-bs-theme and saves the choice to
+     wm-theme. With no saved choice, the page keeps following the
+     system preference as it changes. */
   (function () {
     var button = document.getElementById("theme-toggle");
     if (!button) return;
     function label() {
-      var dark = document.documentElement.getAttribute("data-theme") === "dark";
+      var dark = document.documentElement.getAttribute("data-bs-theme") === "dark";
       button.textContent = dark ? "Light" : "Dark";
       button.setAttribute("aria-label", dark ? "Switch to light mode" : "Switch to dark mode");
     }
     button.addEventListener("click", function () {
-      var next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
-      document.documentElement.setAttribute("data-theme", next);
+      var next = document.documentElement.getAttribute("data-bs-theme") === "dark" ? "light" : "dark";
+      document.documentElement.setAttribute("data-bs-theme", next);
       try { localStorage.setItem("wm-theme", next); } catch (e) {}
       label();
     });
     try {
       if (!localStorage.getItem("wm-theme")) {
         window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function (e) {
-          document.documentElement.setAttribute("data-theme", e.matches ? "dark" : "light");
+          document.documentElement.setAttribute("data-bs-theme", e.matches ? "dark" : "light");
           label();
         });
       }

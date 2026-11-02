@@ -1,5 +1,42 @@
 # Changelog
 
+## 3.2.0 — 2026-11-02
+
+### Changed
+
+- **AdminLTE 4 shell:** the whole app now renders in an
+  AdminLTE 4.10.0 shell on Bootstrap 5.3.8 (vanilla JS, no
+  jQuery, MIT) with a collapsible sidebar grouped as Main /
+  People / Operations, role-gated exactly as before (Users
+  Admin-only, Classroom Admin/Supervisor). Every page's
+  sections are AdminLTE cards via a reusable Jinja macro
+  (`templates/components/cards.html`: `card()` and
+  `widget_card()`), and Home's three counts are AdminLTE
+  small-box widgets. All tables use Bootstrap table styling
+  and all forms use Bootstrap controls; routes, session
+  auth, CSRF, SQLite schema, and demo data are unchanged.
+- **Theme via `data-bs-theme`:** the light/dark toggle now
+  flips Bootstrap/AdminLTE's `data-bs-theme` instead of a
+  custom `data-theme`. Behaviour is unchanged: system
+  preference by default, saved choice wins, no flash before
+  load, and the saved `wm-theme` localStorage key carries
+  over from v3.0.1/v3.1.0.
+- **Vendor, don't CDN, the shell:** AdminLTE, Bootstrap,
+  and Bootstrap Icons are vendored under
+  `static/vendor/` (with a `THIRD_PARTY_NOTICES.md`
+  recording their MIT licences), so the app and the Pages
+  freeze work offline. Leaflet maps on Attendance/Distance
+  still use their CDN, as before.
+- **Screenshots:** all README screenshots re-captured
+  from the real Flask app on the demo dataset, showing the
+  AdminLTE shell.
+
+### Still open (unchanged)
+
+- Schedule write endpoints, mileage approval workflow,
+  audit log, self-service password reset (admin reset
+  above is not self-service), Alembic migrations.
+
 ## 3.1.0 — 2026-11-02
 
 ### Added

@@ -7,7 +7,10 @@ Visitors can click through home, attendance, schedule,
 mileage, directory, distance, collateral, HR, Voice,
 Classroom, and Users pages and read the demo
 data — navigation, tables, and the Leaflet maps work in the
-browser (map tiles and Leaflet come from their CDNs).
+browser (map tiles and Leaflet come from their CDNs; the
+AdminLTE shell itself is vendored under static/vendor/, so
+its CSS/JS are copied into freeze-site/static/ with the rest
+of the static files and need no network).
 
 What still does not work, because Pages has no server:
 login/logout, clock-in/out, mileage add/upload, contact
@@ -99,13 +102,14 @@ def rewrite_html(html: str) -> str:
         html = html.replace(f'href="{route}"', f'href="{target}"')
         html = html.replace(f'action="{route}"', f'action="{target}"')
     html = html.replace('href="/static/', 'href="static/')
+    html = html.replace('src="/static/', 'src="static/')
     # Any remaining internal URL is a POST-only route (clock-in,
     # clock-out, contact delete, etc.): forms are disabled in the
     # freeze, so point them at "#" rather than a dead Pages path.
     html = re.sub(r'href="/[^"]*"', 'href="#"', html)
     html = re.sub(r'action="/[^"]*"', 'action="#"', html)
     html = re.sub(r"<body([^>]*)>", r"<body\1>" + BANNER, html, count=1)
-    leftover = re.findall(r'(?:href|action)="/(?!static)', html)
+    leftover = re.findall(r'(?:href|action|src)="/(?!static)', html)
     if leftover:
         raise RuntimeError(f"Unrewritten internal links remain: {leftover}")
     return html

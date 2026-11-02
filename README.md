@@ -4,7 +4,7 @@
 <!-- CI badge: add after the workflow has run green on main, e.g.
      [![CI](https://github.com/enonymous1/workspace-monitor/actions/workflows/ci.yml/badge.svg)](https://github.com/enonymous1/workspace-monitor/actions/workflows/ci.yml) -->
 
-A workspace dashboard for small teams: geolocation attendance, a schedule calendar, a mileage log with bulk upload, a directory, and a driving-distance calculator. Flask + Jinja2, one process, SQLite.
+A workspace dashboard for small teams: geolocation attendance, a schedule calendar, a mileage log with bulk upload, a directory, and a driving-distance calculator. Flask + Jinja2, one process, SQLite, AdminLTE 4 shell (vendored, no CDN).
 
 This is v3. It replaces the v2 FastAPI + Streamlit build with the same features, the same role rules, and the same demo dataset — in the Flask stack used by the author's other projects. If you are reading this after v2, the API endpoints and Streamlit pages are gone; everything below is the Flask app.
 
@@ -37,7 +37,8 @@ python -m http.server --directory freeze-site 8000
 - **HR & hiring** — employee roster (pay-cycle hours are Admin-only), job-description CRUD (title, description, location, pay range, status, posting URL, manual application count), and links out to the Indeed Employer Dashboard and Indeed's post-a-job page. There is no Indeed sync: Indeed's posting APIs need partner approval, so posting happens in Indeed itself.
 - **Voice (manual only)** — Google Voice has no public API, so this page cannot pull calls, texts, or voicemails. It is a staff-entered call/voicemail log with an open follow-up count, plus a link to Google Voice for the real inbox.
 - **Classroom (read-only, Admin/Supervisor only)** — if `WORKSPACE_MONITOR_CLASSROOM_TOKEN` is set, lists courses and coursework live from the Classroom API (read-only scopes only, nothing is stored in this app's database). If no token is set, the page shows setup steps instead of fake courses. Most useful for staff training/onboarding courses.
-- **Theme** — follows your device's light/dark preference by default, with a Dark/Light button in the header to override it. Your choice is saved in the browser; with no saved choice it keeps following the system.
+- **AdminLTE shell** — collapsible sidebar grouped as Main / People / Operations, AdminLTE cards on every page (reusable Jinja macro in `templates/components/cards.html`), and small-box widgets on Home. AdminLTE 4.10.0 + Bootstrap 5.3.8 are vendored under `static/vendor/` (see `THIRD_PARTY_NOTICES.md`), so the app works offline; routes, auth, and data are unchanged from v3.1.0.
+- **Theme** — follows your device's light/dark preference by default, with a Dark/Light button in the header to override it. Your choice is saved in the browser (`wm-theme`); with no saved choice it keeps following the system. Implemented as Bootstrap's `data-bs-theme`, set before the stylesheets load so there is no flash.
 
 ## Screenshots
 
@@ -154,7 +155,7 @@ ruff format --check workspace_monitor tests scripts run_app.py
 python -m pytest -q
 ```
 
-Tests use a throwaway Flask app and database per test (21 tests): login/logout, role visibility, clock-in/out and double clock-in, mileage attribution and all-or-nothing bulk upload, directory permissions, distance caching (with mocked Nominatim/OSRM), CSRF, rate limiting, suspension, seed counts, the freeze build, and version agreement. CI runs the same gates on Python 3.11 and 3.12, plus a freeze check.
+Tests use a throwaway Flask app and database per test (31 tests): login/logout, role visibility, clock-in/out and double clock-in, mileage attribution and all-or-nothing bulk upload, directory permissions, distance caching (with mocked Nominatim/OSRM), CSRF, rate limiting, suspension, seed counts, the freeze build, and version agreement. CI runs the same gates on Python 3.11 and 3.12, plus a freeze check.
 
 ## Known limitations
 
