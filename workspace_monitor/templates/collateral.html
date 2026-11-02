@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Collateral — workspace-monitor{% endblock %}
+{% block content %}
+<h1>Collateral &amp; mail-outs</h1>
+<p>Pamphlets, business cards, and flyers. Privileged users (Admin/Supervisor) manage items; everyone can read.</p>
+
+{% if low_stock %}
+<h2>Below reorder level</h2>
+<ul>
+  {% for item in low_stock %}
+  <li>{{ item.name }} — {{ item.quantity }} on hand, reorder at {{ item.reorder_level }}</li>
+  {% endfor %}
+</ul>
+{% endif %}
+
+<h2>Items</h2>
+<table>
+  <thead><tr><th>Name</th><th>Type</th><th>Quantity</th><th>Reorder at</th><th>Unit cost</th><th>Vendor</th><th>Status</th><th>Notes</th><th></th></tr></thead>
+  <tbody>
+  {% for item in items %}
+    <tr>
+      <td>{{ item.name }}</td><td>{{ item.item_type }}</td><td>{{ item.quantity }}</td><td>{{ item.reorder_level }}</td>
+      <td>{{ item.unit_cost }}</td><td>{{ item.vendor }}</td><td>{{ item.status }}</td><td>{{ item.notes }}</td>
+      <td>
+        {% if can_manage %}
+        <form method="post" action="{{ url_for('collateral.delete_item', item_id=item.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <button type="submit">Delete</button>
+        </form>
+        {% endif %}
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+{% if can_manage %}
+<h2>Add item</h2>
+<form method="post" action="{{ url_for('collateral.add_item') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <label>Name <input type="text" name="name" required></label>
+  <label>Type
+    <select name="item_type">
+      {% for t in item_types %}<option value="{{ t }}">{{ t }}</option>{% endfor %}
+    </select>
+  </label>
+  <label>Quantity <input type="number" name="quantity" value="0" required></label>
+  <label>Reorder level <input type="number" name="reorder_level" value="0" required></label>
+  <label>Unit cost <input type="number" step="any" name="unit_cost"></label>
+  <label>Vendor <input type="text" name="vendor"></label>
+  <label>Status
+    <select name="status">
+      {% for s in statuses %}<option value="{{ s }}">{{ s }}</option>{% endfor %}
+    </select>
+  </label>
+  <label>Notes <input type="text" name="notes"></label>
+  <button type="submit">Save item</button>
+</form>
+
+<h2>Update stock / status</h2>
+<p>Use the item's ID from the table above. Editing the name/type is deliberately not offered here — delete and re-add if a name was wrong, so mail-out history stays unambiguous.</p>
+<form method="post" action="{{ url_for('collateral.update_item', item_id=0) }}" onsubmit="this.action='/collateral/update/' + document.getElementById('update-item-id').value; return true;">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <label>Item ID <input type="number" name="item_id" id="update-item-id" required></label>
+  <label>Quantity <input type="number" name="quantity" required></label>
+  <label>Reorder level <input type="number" name="reorder_level" required></label>
+  <label>Unit cost <input type="number" step="any" name="unit_cost"></label>
+  <label>Vendor <input type="text" name="vendor"></label>
+  <label>Status
+    <select name="status">
+      {% for s in statuses %}<option value="{{ s }}">{{ s }}</option>{% endfor %}
+    </select>
+  </label>
+  <label>Notes <input type="text" name="notes"></label>
+  <button type="submit">Update item</button>
+</form>
+
+<h2>Record a mail-out</h2>
+<p>Recording a mail-out reduces the item's stock by the recipient count (never below zero). Recipients themselves live in <a href="{{ url_for('directory.directory') }}">Directory</a>; this log records counts, not individual addresses.</p>
+<form method="post" action="{{ url_for('collateral.add_mailout') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <label>Item ID <input type="number" name="item_id" required></label>
+  <label>Date <input type="date" name="date" required></label>
+  <label>Recipients <input type="number" name="recipient_count" required></label>
+  <label>Cost <input type="number" step="any" name="cost"></label>
+  <label>Notes <input type="text" name="notes"></label>
+  <button type="submit">Record mail-out</button>
+</form>
+{% endif %}
+
+<h2>Mail-out history</h2>
+<table>
+  <thead><tr><th>Date</th><th>Item</th><th>Recipients</th><th>Cost</th><th>Notes</th></tr></thead>
+  <tbody>
+  {% for m in mailouts %}
+    <tr><td>{{ m.date }}</td><td>{{ m.item_name }}</td><td>{{ m.recipient_count }}</td><td>{{ m.cost }}</td><td>{{ m.notes }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

@@ -26,7 +26,7 @@ from flask import Flask, session
 from workspace_monitor.config import Settings
 from workspace_monitor.rate_limit import LoginRateLimiter
 
-__version__ = "3.0.1"
+__version__ = "3.1.0"
 
 logger = logging.getLogger(__name__)
 
@@ -75,11 +75,16 @@ def create_app(settings: Settings | None = None) -> Flask:
     from workspace_monitor.routes import (
         attendance,
         auth,
+        classroom,
+        collateral,
         directory,
         distance,
+        hr,
         main,
         mileage,
         schedule,
+        users,
+        voice,
     )
 
     app.register_blueprint(auth.bp)
@@ -89,6 +94,11 @@ def create_app(settings: Settings | None = None) -> Flask:
     app.register_blueprint(mileage.bp)
     app.register_blueprint(directory.bp)
     app.register_blueprint(distance.bp)
+    app.register_blueprint(users.bp)
+    app.register_blueprint(collateral.bp)
+    app.register_blueprint(hr.bp)
+    app.register_blueprint(voice.bp)
+    app.register_blueprint(classroom.bp)
 
     # Session housekeeping: drop a stale user marker if the
     # account no longer resolves (suspended/deleted).

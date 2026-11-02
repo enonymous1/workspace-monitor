@@ -4,7 +4,8 @@ Unlike the v2 screenshot gallery, this freeze is real HTML:
 the Flask test client logs in as the demo admin, requests each
 page, and writes the rendered templates to ``freeze-site/``.
 Visitors can click through home, attendance, schedule,
-mileage, directory, and distance pages and read the demo
+mileage, directory, distance, collateral, HR, Voice,
+Classroom, and Users pages and read the demo
 data — navigation, tables, and the Leaflet maps work in the
 browser (map tiles and Leaflet come from their CDNs).
 
@@ -46,6 +47,11 @@ PAGES = [
     ("/mileage", "mileage.html"),
     ("/directory", "directory.html"),
     ("/distance", "distance.html"),
+    ("/collateral", "collateral.html"),
+    ("/hr", "hr.html"),
+    ("/voice", "voice.html"),
+    ("/classroom", "classroom.html"),
+    ("/users", "users.html"),
 ]
 
 HREF_MAP = {
@@ -57,6 +63,11 @@ HREF_MAP = {
     "/mileage": "mileage.html",
     "/directory": "directory.html",
     "/distance": "distance.html",
+    "/collateral": "collateral.html",
+    "/hr": "hr.html",
+    "/voice": "voice.html",
+    "/classroom": "classroom.html",
+    "/users": "users.html",
     "/mileage/export": "mileage.csv",
 }
 

@@ -141,6 +141,47 @@ CREATE TABLE IF NOT EXISTS contacts (
     phone TEXT,
     category TEXT
 );
+CREATE TABLE IF NOT EXISTS collateral_items (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    item_type TEXT NOT NULL,
+    quantity INTEGER NOT NULL DEFAULT 0,
+    reorder_level INTEGER NOT NULL DEFAULT 0,
+    unit_cost REAL,
+    vendor TEXT,
+    status TEXT NOT NULL DEFAULT 'draft',
+    notes TEXT
+);
+CREATE TABLE IF NOT EXISTS mailouts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    item_id INTEGER NOT NULL,
+    date TEXT NOT NULL,
+    recipient_count INTEGER NOT NULL DEFAULT 0,
+    cost REAL,
+    notes TEXT,
+    FOREIGN KEY (item_id) REFERENCES collateral_items (id)
+);
+CREATE TABLE IF NOT EXISTS job_postings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    description TEXT,
+    location TEXT,
+    pay_range TEXT,
+    status TEXT NOT NULL DEFAULT 'draft',
+    posting_url TEXT,
+    applications_count INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT
+);
+CREATE TABLE IF NOT EXISTS voice_logs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    date TEXT NOT NULL,
+    direction TEXT NOT NULL,
+    contact TEXT,
+    duration_minutes REAL,
+    outcome TEXT,
+    follow_up_needed INTEGER NOT NULL DEFAULT 0,
+    notes TEXT
+);
 CREATE INDEX IF NOT EXISTS idx_attendance_user
     ON attendance (user_email, clock_in_time DESC);
 CREATE INDEX IF NOT EXISTS idx_schedule_user
@@ -383,6 +424,96 @@ def seed_demo_data(db_path=None) -> int:
             "INSERT INTO contacts (owner_email, full_name, job_title, email, phone, category)"
             " VALUES (?,?,?,?,?,?)",
             contacts,
+        )
+        conn.executemany(
+            "INSERT INTO collateral_items (name, item_type, quantity, reorder_level, unit_cost, vendor, status, notes)"
+            " VALUES (?,?,?,?,?,?,?,?)",
+            [
+                (
+                    "Spring mail-out pamphlet",
+                    "pamphlet",
+                    250,
+                    50,
+                    0.85,
+                    "Local Print Co.",
+                    "printed",
+                    "Fictional demo item",
+                ),
+                (
+                    "Business card — front desk",
+                    "business card",
+                    500,
+                    100,
+                    0.12,
+                    "Local Print Co.",
+                    "printed",
+                    "Fictional demo item",
+                ),
+                (
+                    "Services flyer",
+                    "flyer",
+                    40,
+                    100,
+                    0.45,
+                    "Local Print Co.",
+                    "draft",
+                    "Below reorder level — demo example",
+                ),
+            ],
+        )
+        conn.execute(
+            "INSERT INTO mailouts (item_id, date, recipient_count, cost, notes)"
+            " VALUES (1, '2026-10-15', 120, 102.00, 'Fictional demo mail-out')"
+        )
+        conn.executemany(
+            "INSERT INTO job_postings (title, description, location, pay_range, status, posting_url, applications_count, created_at)"
+            " VALUES (?,?,?,?,?,?,?,?)",
+            [
+                (
+                    "Front Desk Associate",
+                    "Fictional demo posting: greet visitors, answer phones, keep the schedule.",
+                    "Stafford, VA",
+                    "$18–$22/hr",
+                    "open",
+                    "",
+                    3,
+                    "2026-10-20",
+                ),
+                (
+                    "Delivery Driver",
+                    "Fictional demo posting: local deliveries, clean driving record required.",
+                    "Culpeper, VA",
+                    "$20–$24/hr",
+                    "draft",
+                    "",
+                    0,
+                    "2026-10-25",
+                ),
+            ],
+        )
+        conn.executemany(
+            "INSERT INTO voice_logs (date, direction, contact, duration_minutes, outcome, follow_up_needed, notes)"
+            " VALUES (?,?,?,?,?,?,?)",
+            [
+                (
+                    "2026-10-28",
+                    "inbound",
+                    "Example Caller",
+                    4.0,
+                    "Message taken",
+                    1,
+                    "Fictional demo entry",
+                ),
+                (
+                    "2026-10-29",
+                    "voicemail",
+                    "Example Caller",
+                    1.5,
+                    "Callback requested",
+                    1,
+                    "Fictional demo entry",
+                ),
+            ],
         )
         conn.commit()
         return len(users)

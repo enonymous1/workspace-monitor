@@ -64,6 +64,26 @@ def login_required(view):
     return wrapped
 
 
+def admin_required(view):
+    """Admin only: Supervisors and Standard users get a 403.
+
+    Used for user management and for pay-cycle hours on the HR
+    page. Privileged (Admin/Supervisor) read access is separate
+    — see is_privileged — and is not enough for these actions.
+    """
+
+    @wraps(view)
+    def wrapped(*args, **kwargs):
+        user = get_current_user()
+        if user is None:
+            return redirect(url_for("auth.login", next=request.path))
+        if user["role"] != Role.ADMIN:
+            abort(403, "Admin only")
+        return view(*args, **kwargs)
+
+    return wrapped
+
+
 def visible_email(user: dict, requested: str | None) -> str | None:
     """Email filter for a list view: privileged users may filter,
     Standard users always see only their own rows."""

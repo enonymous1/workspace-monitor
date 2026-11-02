@@ -32,6 +32,15 @@
     <a href="{{ url_for('mileage.mileage') }}">Mileage</a>
     <a href="{{ url_for('directory.directory') }}">Directory</a>
     <a href="{{ url_for('distance.distance') }}">Distance</a>
+    <a href="{{ url_for('collateral.collateral') }}">Collateral</a>
+    <a href="{{ url_for('hr.hr') }}">HR</a>
+    <a href="{{ url_for('voice.voice') }}">Voice</a>
+    {% if current_user.role.value in ('Admin', 'Supervisor') %}
+    <a href="{{ url_for('classroom.classroom') }}">Classroom</a>
+    {% endif %}
+    {% if current_user.role.value == 'Admin' %}
+    <a href="{{ url_for('users.users') }}">Users</a>
+    {% endif %}
   </nav>
   <span class="user">Logged in as: {{ current_user.email }} ({{ current_user.role.value }})</span>
   <form method="post" action="{{ url_for('auth.logout') }}" class="inline">

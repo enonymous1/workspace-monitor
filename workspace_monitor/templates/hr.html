@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}HR &amp; hiring — workspace-monitor{% endblock %}
+{% block content %}
+<h1>HR &amp; hiring</h1>
+<p>Employee roster, job descriptions, and posting channels. Pay-cycle hours are Admin-only; Supervisors see the roster without pay data, Standard users see only their own row.</p>
+
+<h2>Employee roster</h2>
+<table>
+  <thead><tr><th>Name</th><th>Email</th><th>Department</th><th>Title</th><th>Role</th><th>Status</th>{% if show_pay %}<th>Pay-cycle hours</th>{% endif %}</tr></thead>
+  <tbody>
+  {% for row in roster %}
+    <tr>
+      <td>{{ row.full_name }}</td><td>{{ row.email }}</td><td>{{ row.department }}</td><td>{{ row.title }}</td><td>{{ row.role }}</td>
+      <td>{{ 'Suspended' if row.is_suspended else 'Active' }}</td>
+      {% if show_pay %}<td>{{ row.current_pay_cycle_hours }}</td>{% endif %}
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+<p>Manage accounts (create, role, suspend, password reset) on the <a href="{{ url_for('users.users') }}">Users</a> page — Admin only.</p>
+
+<h2>Job descriptions &amp; postings</h2>
+<p>These are local records. There is no Indeed sync: Indeed's posting APIs need partner approval, so the actual posting happens in Indeed's own dashboard (links below), and application counts here are entered manually.</p>
+<table>
+  <thead><tr><th>Title</th><th>Location</th><th>Pay range</th><th>Status</th><th>Applications</th><th>Posting link</th><th>Description</th><th></th></tr></thead>
+  <tbody>
+  {% for job in jobs %}
+    <tr>
+      <td>{{ job.title }}</td><td>{{ job.location }}</td><td>{{ job.pay_range }}</td><td>{{ job.status }}</td><td>{{ job.applications_count }}</td>
+      <td>{% if job.posting_url %}<a href="{{ job.posting_url }}">Posting</a>{% endif %}</td><td>{{ job.description }}</td>
+      <td>
+        {% if can_manage %}
+        <form method="post" action="{{ url_for('hr.delete_job', job_id=job.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <button type="submit">Delete</button>
+        </form>
+        {% endif %}
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+{% if can_manage %}
+<h2>Add a job description</h2>
+<form method="post" action="{{ url_for('hr.add_job') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <label>Title <input type="text" name="title" required></label>
+  <label>Description <input type="text" name="description"></label>
+  <label>Location <input type="text" name="location"></label>
+  <label>Pay range <input type="text" name="pay_range"></label>
+  <label>Status
+    <select name="status">
+      {% for s in job_statuses %}<option value="{{ s }}">{{ s }}</option>{% endfor %}
+    </select>
+  </label>
+  <label>Posting URL <input type="url" name="posting_url"></label>
+  <label>Applications (manual count) <input type="number" name="applications_count" value="0"></label>
+  <button type="submit">Save job</button>
+</form>
+
+<h2>Update a posting</h2>
+<form method="post" action="{{ url_for('hr.update_job', job_id=0) }}" onsubmit="this.action='/hr/job/update/' + document.getElementById('update-job-id').value; return true;">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <label>Job ID <input type="number" name="job_id" id="update-job-id" required></label>
+  <label>Status
+    <select name="status">
+      {% for s in job_statuses %}<option value="{{ s }}">{{ s }}</option>{% endfor %}
+    </select>
+  </label>
+  <label>Posting URL <input type="url" name="posting_url"></label>
+  <label>Applications (manual count) <input type="number" name="applications_count" value="0"></label>
+  <button type="submit">Update job</button>
+</form>
+{% endif %}
+
+<h2>Posting channels</h2>
+<ul>
+  <li><a href="https://employers.indeed.com/">Indeed Employer Dashboard</a> — post jobs, review candidates, message applicants (separate Indeed account; no sync with this app).</li>
+  <li><a href="https://www.indeed.com/hire">Indeed — post a job</a> — start a posting if you do not have an employer account yet.</li>
+  <li><a href="https://www.linkedin.com/">LinkedIn</a> — post and share the same job description; paste its posting URL into the job record above.</li>
+</ul>
+{% endblock %}

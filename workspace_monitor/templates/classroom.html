@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Classroom — workspace-monitor{% endblock %}
+{% block content %}
+<h1>Google Classroom overview</h1>
+<p>Read-only, Admin/Supervisor only. No assignments are created, no grades are changed, and no Classroom data is stored in this app's database — it is read live on each page load.</p>
+
+{% if error == "not_configured" %}
+<h2>Not connected</h2>
+<p>No Classroom token is configured, so no courses are shown here (and none are invented).</p>
+<ol>
+  <li>In Google Cloud Console, create an OAuth client for the business's Google account and enable the Classroom API.</li>
+  <li>Authorize with read-only scopes only: <code>classroom.courses.readonly</code>, <code>classroom.coursework.students.readonly</code>, <code>classroom.rosters.readonly</code>.</li>
+  <li>Set the resulting short-lived access token as <code>WORKSPACE_MONITOR_CLASSROOM_TOKEN</code> when starting the app. Do not commit it, and do not put it in the database.</li>
+  <li>Reload this page. If the token is rejected or expired, the error will be shown here instead of fake data.</li>
+</ol>
+<p>This page is most useful for staff training / onboarding courses. For a general business with no training classes, it will simply show an empty course list once connected.</p>
+{% elif error %}
+<h2>Classroom error</h2>
+<p class="flash error">{{ error }}</p>
+{% else %}
+<h2>Courses ({{ courses|length }})</h2>
+{% for course in courses %}
+  <h3>{{ course.name }} {% if course.section %}— {{ course.section }}{% endif %}</h3>
+  <p>{{ course.descriptionHeading or '' }}</p>
+  {% if course.coursework %}
+  <table>
+    <thead><tr><th>Assignment</th><th>State</th><th>Due</th></tr></thead>
+    <tbody>
+    {% for work in course.coursework %}
+      <tr><td>{{ work.title }}</td><td>{{ work.state }}</td><td>{{ work.dueDate.year if work.dueDate else '' }}-{{ work.dueDate.month if work.dueDate else '' }}-{{ work.dueDate.day if work.dueDate else '' }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p>No coursework returned for this course.</p>
+  {% endif %}
+{% endfor %}
+{% endif %}
+{% endblock %}

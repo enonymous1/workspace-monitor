@@ -26,6 +26,11 @@ def test_freeze_builds_resolvable_site(tmp_path, monkeypatch):
         "mileage.html",
         "directory.html",
         "distance.html",
+        "collateral.html",
+        "hr.html",
+        "voice.html",
+        "classroom.html",
+        "users.html",
         "mileage.csv",
     }
     actual = {p.name for p in out_dir.iterdir() if p.is_file()}

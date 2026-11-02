@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Users — workspace-monitor{% endblock %}
+{% block content %}
+<h1>Workspace Users (internal)</h1>
+<p>Admin only. These are login accounts. External people are in <a href="{{ url_for('directory.directory') }}">Directory</a>, not here — do not create a login for an external contact unless they should sign in.</p>
+<p>There is no delete: suspend instead, so attendance, mileage, and schedule history stays intact.</p>
+
+<h2>All users</h2>
+<table>
+  <thead><tr><th>Name</th><th>Email</th><th>Department</th><th>Title</th><th>Role</th><th>Status</th><th>Last login</th><th></th></tr></thead>
+  <tbody>
+  {% for row in rows %}
+    <tr>
+      <td>{{ row.full_name }}</td><td>{{ row.email }}</td><td>{{ row.department }}</td><td>{{ row.title }}</td><td>{{ row.role }}</td>
+      <td>{{ 'Suspended' if row.is_suspended else 'Active' }}</td><td>{{ row.last_login_time or '' }}</td>
+      <td>
+        {% if row.is_suspended %}
+        <form method="post" action="{{ url_for('users.reactivate_user') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <input type="hidden" name="email" value="{{ row.email }}">
+          <button type="submit">Reactivate</button>
+        </form>
+        {% else %}
+        <form method="post" action="{{ url_for('users.suspend_user') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <input type="hidden" name="email" value="{{ row.email }}">
+          <button type="submit">Suspend</button>
+        </form>
+        {% endif %}
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+<h2>Add user</h2>
+<form method="post" action="{{ url_for('users.add_user') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <label>Email <input type="email" name="email" required></label>
+  <label>Full name <input type="text" name="full_name" required></label>
+  <label>Department <input type="text" name="department"></label>
+  <label>Title <input type="text" name="title"></label>
+  <label>Role
+    <select name="role">
+      <option value="Standard">Standard</option>
+      <option value="Supervisor">Supervisor</option>
+      <option value="Admin">Admin</option>
+    </select>
+  </label>
+  <label>Password (min 8 characters) <input type="password" name="password" required></label>
+  <button type="submit">Create user</button>
+</form>
+
+<h2>Update user</h2>
+<form method="post" action="{{ url_for('users.update_user') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <label>Email <input type="email" name="email" required></label>
+  <label>Full name <input type="text" name="full_name" required></label>
+  <label>Department <input type="text" name="department"></label>
+  <label>Title <input type="text" name="title"></label>
+  <label>Role
+    <select name="role">
+      <option value="Standard">Standard</option>
+      <option value="Supervisor">Supervisor</option>
+      <option value="Admin">Admin</option>
+    </select>
+  </label>
+  <button type="submit">Update user</button>
+</form>
+
+<h2>Reset a user's password</h2>
+<p>Admin-initiated only. There is no self-service reset yet — share the new password with the user through a secure channel outside this app.</p>
+<form method="post" action="{{ url_for('users.reset_password') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <label>Email <input type="email" name="email" required></label>
+  <label>New password (min 8 characters) <input type="password" name="new_password" required></label>
+  <label>Confirm new password <input type="password" name="confirm_password" required></label>
+  <button type="submit">Reset password</button>
+</form>
+{% endblock %}

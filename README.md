@@ -32,6 +32,11 @@ python -m http.server --directory freeze-site 8000
 - **Directory** — searchable contacts. Admins may create/delete any contact; other users may only create/delete their own. Supervisors see all contacts but cannot manage others'.
 - **Distance calculator** — Nominatim geocoding + OSRM routing, cached in the local database (repeated lookups never re-hit the public demo endpoints). Real example from the demo: Stafford Courthouse → Culpeper Courthouse, 43.11 miles, 62.66 minutes.
 - **Roles** — Admin, Supervisor, Standard (case-insensitive, one enum). Admins and Supervisors see all users' rows; Standard users always see only their own, even if they pass another user's email in a filter. Mileage and contacts are always attributed to the session user for Standard users.
+- **Users (Admin only)** — list internal login accounts, create users, change role/department/title, suspend/reactivate, and admin-reset a password. There is no delete: suspend instead, so history stays intact. Admins cannot suspend themselves, and the last Admin cannot be demoted. External people stay in Directory, not here.
+- **Collateral** — CRUD for pamphlets, business cards, and flyers (quantity, reorder level, unit cost, vendor, status), with a below-reorder-level list and a mail-out log that reduces stock by recipients sent. An item with mail-out history cannot be deleted — archive it instead.
+- **HR & hiring** — employee roster (pay-cycle hours are Admin-only), job-description CRUD (title, description, location, pay range, status, posting URL, manual application count), and links out to the Indeed Employer Dashboard and Indeed's post-a-job page. There is no Indeed sync: Indeed's posting APIs need partner approval, so posting happens in Indeed itself.
+- **Voice (manual only)** — Google Voice has no public API, so this page cannot pull calls, texts, or voicemails. It is a staff-entered call/voicemail log with an open follow-up count, plus a link to Google Voice for the real inbox.
+- **Classroom (read-only, Admin/Supervisor only)** — if `WORKSPACE_MONITOR_CLASSROOM_TOKEN` is set, lists courses and coursework live from the Classroom API (read-only scopes only, nothing is stored in this app's database). If no token is set, the page shows setup steps instead of fake courses. Most useful for staff training/onboarding courses.
 - **Theme** — follows your device's light/dark preference by default, with a Dark/Light button in the header to override it. Your choice is saved in the browser; with no saved choice it keeps following the system.
 
 ## Screenshots
@@ -45,6 +50,11 @@ Real output from the Flask app on the fictional demo dataset (not mockups).
 ![Mileage](docs/assets/mileage-view.png)
 ![Directory](docs/assets/directory.png)
 ![Distance route](docs/assets/distance-route.png)
+![Users](docs/assets/users.png)
+![Collateral](docs/assets/collateral.png)
+![HR & hiring](docs/assets/hr.png)
+![Voice](docs/assets/voice.png)
+![Classroom](docs/assets/classroom.png)
 
 ## Prerequisites
 
@@ -91,12 +101,13 @@ python run_app.py
 | `WORKSPACE_MONITOR_AUTO_SEED` | `0` | `1` seeds the demo dataset on start (demo only). |
 | `WORKSPACE_MONITOR_LOGIN_MAX_FAILURES` / `WORKSPACE_MONITOR_LOGIN_WINDOW_SECONDS` | `5` / `900` | Failed-login rate limit per IP (15 minutes). |
 | `WORKSPACE_MONITOR_API_TIMEOUT` | `10` | Seconds for Nominatim/OSRM requests. |
+| `WORKSPACE_MONITOR_CLASSROOM_TOKEN` | *(unset)* | Short-lived Google Classroom OAuth access token (read-only scopes). When unset, the Classroom page shows setup steps instead of courses. Never commit it. |
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-    Browser --> Flask["Flask app (home + 5 pages)"]
+    Browser --> Flask["Flask app (home + 10 pages)"]
     Flask -->|Session cookie| SQLite[(SQLite workspace_monitor/monitor.db)]
     Flask -.->|distance page only| Nominatim["Nominatim (geocoding)"]
     Flask -.->|distance page only| OSRM["OSRM (routing)"]

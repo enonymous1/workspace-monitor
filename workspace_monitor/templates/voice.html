@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Voice — workspace-monitor{% endblock %}
+{% block content %}
+<h1>Google Voice overview</h1>
+<p><strong>No live sync.</strong> Google Voice has no public API, so this page cannot pull calls, texts, or voicemails. The log below is entered by staff by hand. For the real inbox, use <a href="https://voice.google.com/">Google Voice</a> directly.</p>
+<p>Open follow-ups: {{ follow_ups }}</p>
+
+<h2>Call &amp; voicemail log (manual)</h2>
+<table>
+  <thead><tr><th>Date</th><th>Direction</th><th>Contact</th><th>Duration (min)</th><th>Outcome</th><th>Follow-up?</th><th>Notes</th><th></th></tr></thead>
+  <tbody>
+  {% for log in logs %}
+    <tr>
+      <td>{{ log.date }}</td><td>{{ log.direction }}</td><td>{{ log.contact }}</td><td>{{ log.duration_minutes }}</td>
+      <td>{{ log.outcome }}</td><td>{{ 'Yes' if log.follow_up_needed else 'No' }}</td><td>{{ log.notes }}</td>
+      <td>
+        {% if can_manage %}
+        <form method="post" action="{{ url_for('voice.delete_log', log_id=log.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <button type="submit">Delete</button>
+        </form>
+        {% endif %}
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+{% if can_manage %}
+<h2>Log a call / voicemail</h2>
+<form method="post" action="{{ url_for('voice.add_log') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <label>Date <input type="date" name="date" required></label>
+  <label>Direction
+    <select name="direction">
+      {% for d in directions %}<option value="{{ d }}">{{ d }}</option>{% endfor %}
+    </select>
+  </label>
+  <label>Contact <input type="text" name="contact"></label>
+  <label>Duration (minutes) <input type="number" step="any" name="duration_minutes"></label>
+  <label>Outcome <input type="text" name="outcome"></label>
+  <label>Follow-up needed <input type="checkbox" name="follow_up_needed" value="1"></label>
+  <label>Notes <input type="text" name="notes"></label>
+  <button type="submit">Save entry</button>
+</form>
+{% endif %}
+
+<h2>Voice setup checklist (manual)</h2>
+<ul>
+  <li>Business number, greeting, and hours are configured in Google Voice itself — this app does not store or change them.</li>
+  <li>Voicemail transcripts arrive by email in the Voice account; log callbacks here so they are not lost.</li>
+  <li>Do not paste call recordings or message contents into this log unless the business has a policy for storing them.</li>
+</ul>
+{% endblock %}

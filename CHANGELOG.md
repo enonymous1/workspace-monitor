@@ -1,5 +1,50 @@
 # Changelog
 
+## 3.1.0 — 2026-11-02
+
+### Added
+
+- **Users (Admin only):** `/users` — list internal login
+  accounts, create users (bcrypt, min 8 characters), update
+  role/department/title, suspend/reactivate, and
+  admin-initiated password reset. No delete (suspend
+  instead, so history stays intact); admins cannot suspend
+  themselves and the last Admin cannot be demoted.
+  External people stay in Directory, not here.
+- **Collateral:** `/collateral` — CRUD for pamphlets,
+  business cards, and flyers (quantity, reorder level,
+  unit cost, vendor, status), a below-reorder-level list,
+  and a mail-out log that reduces stock by recipients
+  sent. Items with mail-out history cannot be deleted.
+- **HR & hiring:** `/hr` — employee roster (pay-cycle
+  hours Admin-only; Supervisors see the roster without
+  pay data; Standard users see only their own row),
+  job-description CRUD, and links to the Indeed
+  Employer Dashboard and Indeed's post-a-job page.
+  No Indeed sync (partner approval required) and no
+  scraping — application counts are manual.
+- **Voice (manual only):** `/voice` — staff-entered
+  call/voicemail log with an open follow-up count and a
+  link to Google Voice. No live sync: Google Voice has
+  no public API, and the page says so.
+- **Classroom (read-only, Admin/Supervisor only):**
+  `/classroom` — with
+  `WORKSPACE_MONITOR_CLASSROOM_TOKEN` set, lists courses
+  and coursework live from the Classroom API (read-only
+  scopes, nothing stored in this app's database);
+  without a token it shows setup steps, never fake
+  courses. Live Google verification is still the owner's
+  gate (their Cloud project and token).
+- Pages freeze now covers all 12 frozen files (11 content
+  pages + login), including the five new ones; demo seed
+  includes collateral, job postings, and voice logs.
+
+### Still open (unchanged)
+
+- Schedule write endpoints, mileage approval workflow,
+  audit log, self-service password reset (admin reset
+  above is not self-service), Alembic migrations.
+
 ## 3.0.1 — 2026-10-31
 
 ### Added
