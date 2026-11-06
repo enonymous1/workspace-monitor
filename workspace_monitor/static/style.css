@@ -24,6 +24,14 @@ form.d-inline {
   margin-bottom: 0;
 }
 
+/* Stacked cards need a gap: AdminLTE explicitly sets
+   `.card { margin-bottom: 0 }`, so without this the cards on every
+   sub-page touch each other edge to edge. style.css loads after
+   adminlte.min.css, so this wins. */
+.card {
+  margin-bottom: 1rem;
+}
+
 /* Wide tables inside cards: scroll horizontally instead of breaking
    the card on narrow screens. */
 .card-body {

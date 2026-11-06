@@ -40,6 +40,11 @@ def test_freeze_builds_resolvable_site(tmp_path, monkeypatch):
     for page in expected - {"mileage.csv"}:
         html = (out_dir / page).read_text(encoding="utf-8")
         assert "Static demo freeze" in html
+        # The banner must be a theme-aware Bootstrap alert, never a
+        # hardcoded pale-yellow box: #fff8e1 was unreadable in dark
+        # mode (light text on a pale background).
+        assert 'class="alert alert-warning' in html
+        assert "#fff8e1" not in html
         assert 'onsubmit="return false;"' in html
         # No absolute internal links may survive (Pages subpath).
         assert not re.search(r'(?:href|action)="/', html), page
@@ -47,6 +52,18 @@ def test_freeze_builds_resolvable_site(tmp_path, monkeypatch):
             if link.startswith("http") or link.startswith("#"):
                 continue
             assert (out_dir / link).exists(), f"{page} links to missing {link}"
+
+
+def test_stacked_cards_have_vertical_spacing():
+    """AdminLTE sets .card { margin-bottom: 0 }, so stacked cards
+    on every sub-page touched edge to edge. Our override (loaded
+    after adminlte.min.css) must restore a gap."""
+    css = (
+        Path(__file__).resolve().parent.parent / "workspace_monitor" / "static" / "style.css"
+    ).read_text(encoding="utf-8")
+    match = re.search(r"\.card\s*\{[^}]*margin-bottom:\s*([^;]+);", css)
+    assert match, "no .card margin-bottom in style.css"
+    assert match.group(1).strip() not in ("0", "0px"), "card gap is zero"
 
 
 def test_freeze_home_shows_demo_data(tmp_path, monkeypatch):

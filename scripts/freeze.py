@@ -74,8 +74,13 @@ HREF_MAP = {
     "/mileage/export": "mileage.csv",
 }
 
+# Bootstrap's alert-warning, not a hardcoded pale-yellow box: its
+# background/text/border come from --bs-warning-*-subtle variables,
+# which Bootstrap redefines for data-bs-theme="dark". The old inline
+# style (#fff8e1) was unreadable in dark mode — light text on a pale
+# yellow background.
 BANNER = (
-    '<div style="background:#fff8e1;border:1px solid #f0d060;border-radius:8px;padding:1rem;margin:1rem 0;">'
+    '<div class="alert alert-warning m-3" role="alert">'
     "<strong>Static demo freeze — not the live app.</strong> "
     "These pages were rendered from the fictional demo dataset. "
     "Navigation and reading work; login, clock-in/out, mileage "

@@ -1,5 +1,21 @@
 # Changelog
 
+## 3.2.1 — 2026-11-06
+
+### Fixed
+
+- **Freeze banner in dark mode:** the "Static demo freeze"
+  banner was a hardcoded pale-yellow box (`#fff8e1`), which
+  was unreadable in dark mode — light text on a pale
+  background. It is now Bootstrap's `alert-warning`, whose
+  colours follow `data-bs-theme`, so it reads in light and
+  dark alike.
+- **Stacked cards touched:** AdminLTE sets
+  `.card { margin-bottom: 0 }`, so the vertical card stacks
+  on every sub-page had no gap between them. `style.css`
+  (loaded after `adminlte.min.css`) now restores
+  `.card { margin-bottom: 1rem }`.
+
 ## 3.2.0 — 2026-11-02
 
 ### Changed
